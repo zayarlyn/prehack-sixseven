@@ -3,10 +3,11 @@ import { queryClient } from './common/lib/queryClient';
 import { getSession } from './modules/auth/auth.api';
 
 import NavBar from './common/components/NavBar';
+import NotFound from './common/components/NotFound';
 
-import LoginPage from './modules/auth/LoginPage';
 import CallbackPage from '@swap-web/modules/auth/pages/CallbackPage';
 import CompleteProfilePage from '@swap-web/modules/auth/pages/CompleteProfilePage';
+import LoginPage from '@swap-web/modules/auth/pages/LoginPage';
 
 import FeedPage from '@swap-web/modules/feed/pages/FeedPage';
 
@@ -22,6 +23,13 @@ import EditProfilePage from '@swap-web/modules/profile/pages/EditProfilePage';
 import UserProfilePage from '@swap-web/modules/profile/pages/UserProfilePage';
 
 const rootRoute = createRootRoute({
+  component: () => <Outlet />,
+  notFoundComponent: NotFound,
+});
+
+const appLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'app',
   component: () => (
     <div>
       <NavBar />
@@ -35,10 +43,16 @@ const requireAuth = async () => {
 
   let user;
   try {
-    user = await queryClient.ensureQueryData({ queryKey: ['session'], queryFn: getSession, retry: false });
+    user = await queryClient.ensureQueryData({
+      queryKey: ['session'],
+      queryFn: getSession,
+      retry: false,
+    });
   } catch {
     throw redirect({ to: '/login' });
   }
+
+  if (!user) throw redirect({ to: '/login' });
 
   if (!user.onboarded) throw redirect({ to: '/auth/complete-profile' });
 };
@@ -62,63 +76,63 @@ const completeProfileRoute = createRoute({
 });
 
 const feedRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/',
   beforeLoad: requireAuth,
   component: FeedPage,
 });
 
 const itemsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/items',
   beforeLoad: requireAuth,
   component: ItemsPage,
 });
 
 const newItemRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/items/new',
   beforeLoad: requireAuth,
   component: NewItemPage,
 });
 
 const itemDetailRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/items/$itemId',
   beforeLoad: requireAuth,
   component: ItemDetailPage,
 });
 
 const conversationsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/conversations',
   beforeLoad: requireAuth,
   component: ConversationsPage,
 });
 
 const conversationDetailRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/conversations/$conversationId',
   beforeLoad: requireAuth,
   component: ConversationDetailPage,
 });
 
 const profileRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/profile',
   beforeLoad: requireAuth,
   component: ProfilePage,
 });
 
 const editProfileRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/profile/edit',
   beforeLoad: requireAuth,
   component: EditProfilePage,
 });
 
 const userProfileRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: '/profile/$userId',
   beforeLoad: requireAuth,
   component: UserProfilePage,
@@ -128,15 +142,17 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   callbackRoute,
   completeProfileRoute,
-  feedRoute,
-  itemsRoute,
-  newItemRoute,
-  itemDetailRoute,
-  conversationsRoute,
-  conversationDetailRoute,
-  profileRoute,
-  editProfileRoute,
-  userProfileRoute,
+  appLayoutRoute.addChildren([
+    feedRoute,
+    itemsRoute,
+    newItemRoute,
+    itemDetailRoute,
+    conversationsRoute,
+    conversationDetailRoute,
+    profileRoute,
+    editProfileRoute,
+    userProfileRoute,
+  ]),
 ]);
 
 export const router = createRouter({ routeTree });

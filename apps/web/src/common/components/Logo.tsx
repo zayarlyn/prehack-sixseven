@@ -51,7 +51,7 @@ export default function Logo({ size = 'md', variant = 'default', compact = false
       </div>
 
       {!compact && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }} className="-mt-1">
           <span
             style={{
               fontSize: font,
@@ -62,7 +62,8 @@ export default function Logo({ size = 'md', variant = 'default', compact = false
               whiteSpace: 'nowrap',
             }}
           >
-            sw<span style={{ color: '#fa4617' }}>a</span>p
+            {/* sw<span style={{ color: '#fa4617' }}>a</span>p */}
+            swap
           </span>
           <span
             style={{
