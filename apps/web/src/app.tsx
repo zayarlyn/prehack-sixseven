@@ -22,7 +22,7 @@ export default function App() {
       .then((user) => setUser(user))
       .catch(() => clearAuth())
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [clearAuth, initBypassAuth, setIsLoading, setUser, setToken]);
 
   if (isLoading) {
     return (
