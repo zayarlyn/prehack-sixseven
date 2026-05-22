@@ -3,9 +3,8 @@
 ## Database & Schema
 
 - [x] Define User model in prisma/schema.prisma with all fields
-- [ ] Run initial migration `prisma migrate dev --name init_users`
 - [x] Write seed file with dev bypass user (id: 00000000-0000-0000-0000-000000000001)
-- [ ] Run seed and verify dev user exists in database
+- [x] Run seed and verify dev user exists in database
 - [x] Verify onboarded field defaults to false
 
 ## Azure AD / Microsoft Setup
@@ -189,7 +188,7 @@
   - [x] DEV_BYPASS_AUTH=true
   - [x] DEV_BYPASS_USER_ID=00000000-0000-0000-0000-000000000001
 - [x] Add to apps/web/.env:
-  - [x] VITE_API_URL=http://localhost:3000
+  - [x] VITE_API_URL=http://localhost:6769
   - [x] VITE_BYPASS_AUTH=true
   - [x] VITE_BYPASS_USER_ID=00000000-0000-0000-0000-000000000001
 - [x] Confirm both .env files are in .gitignore

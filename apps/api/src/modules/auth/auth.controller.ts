@@ -12,3 +12,7 @@ export const microsoftCallback = asyncHandler(async (req: Request, res: Response
   // TODO: Implement Microsoft OAuth callback
   res.json({ message: 'TODO: Microsoft callback' });
 });
+
+export const getSession = asyncHandler(async (req: Request, res: Response) => {
+  success(res, req.user);
+});

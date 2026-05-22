@@ -19,6 +19,8 @@ export type PublicUser = Pick<
   'id' | 'fullName' | 'avatarUrl' | 'faculty' | 'major' | 'year' | 'programLevel' | 'createdAt'
 >;
 
+export type SessionUser = Pick<User, 'id' | 'email' | 'fullName' | 'avatarUrl' | 'onboarded'>;
+
 export interface CompleteProfilePayload {
   year: number;
   programLevel: string;

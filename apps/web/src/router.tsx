@@ -1,9 +1,10 @@
 import { createRouter, createRoute, createRootRoute, Outlet, redirect } from '@tanstack/react-router';
-import { useAuthStore } from '@swap-web/modules/auth/store/authStore';
+import { queryClient } from './common/lib/queryClient';
+import { getSession } from './modules/auth/auth.api';
 
-import NavBar from '@swap-web/common/components/NavBar';
+import NavBar from './common/components/NavBar';
 
-import LoginPage from '@swap-web/modules/auth/pages/LoginPage';
+import LoginPage from './modules/auth/LoginPage';
 import CallbackPage from '@swap-web/modules/auth/pages/CallbackPage';
 import CompleteProfilePage from '@swap-web/modules/auth/pages/CompleteProfilePage';
 
@@ -29,11 +30,16 @@ const rootRoute = createRootRoute({
   ),
 });
 
-const requireAuth = () => {
-  if ((import.meta as any).env?.VITE_BYPASS_AUTH === 'true') return;
+const requireAuth = async () => {
+  if (import.meta.env.VITE_BYPASS_AUTH === 'true') return;
 
-  const { user } = useAuthStore.getState();
-  if (!user) throw redirect({ to: '/login' });
+  let user;
+  try {
+    user = await queryClient.ensureQueryData({ queryKey: ['session'], queryFn: getSession, retry: false });
+  } catch {
+    throw redirect({ to: '/login' });
+  }
+
   if (!user.onboarded) throw redirect({ to: '/auth/complete-profile' });
 };
 

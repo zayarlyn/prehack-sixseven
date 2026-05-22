@@ -1,16 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { forbidden } from '../../common/utils/errors';
+import jwt from 'jsonwebtoken';
+import { unauthorized, forbidden } from '../../common/utils/errors';
 import prisma from '../../common/lib/prisma';
-
-type AuthUser = {
-  id: string;
-  email: string;
-  onboarded: boolean;
-};
+import { SessionUser } from '@swap/types';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user?: AuthUser;
+    user?: SessionUser;
   }
 }
 
@@ -24,7 +20,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
       const user = await prisma.user.findUnique({
         where: { id: bypassUserId },
-        select: { id: true, email: true, onboarded: true },
+        select: { id: true, email: true, fullName: true, avatarUrl: true, onboarded: true },
       });
 
       if (!user) {
@@ -36,13 +32,25 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
 
     const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) return next(forbidden());
+    if (!authHeader?.startsWith('Bearer ')) return next(unauthorized());
 
-    // const token = authHeader.split(' ')[1];
-    // TODO: verify JWT token and attach user
-    // const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    // req.user = decoded as any;
+    const token = authHeader.split(' ')[1];
 
+    let decoded: { id: string };
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    } catch {
+      return next(unauthorized('Invalid or expired token'));
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { id: true, email: true, fullName: true, avatarUrl: true, onboarded: true },
+    });
+
+    if (!user) return next(unauthorized('User not found'));
+
+    req.user = user;
     return next();
   } catch (err) {
     return next(err);

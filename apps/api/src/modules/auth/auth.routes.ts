@@ -18,4 +18,6 @@ router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.user });
 });
 
+router.get('/session', requireAuth, authController.getSession);
+
 export default router;
