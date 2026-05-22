@@ -1,5 +1,5 @@
 {
   "permissions": {
-    "allow": ["Bash(npx prisma *)", "Bash(npm install *)", "Bash(npm run *)"]
+    "allow": ["Bash(npx prisma *)", "Bash(npm install *)", "Bash(npm run *)", "mcp__open-design__get_artifact"]
   }
 }
