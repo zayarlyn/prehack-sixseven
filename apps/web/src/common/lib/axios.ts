@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAuthStore } from '@swap-web/modules/auth/store/authStore';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -16,15 +17,23 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      if (import.meta.env.VITE_BYPASS_AUTH === 'true') {
-        console.warn('[auth] 401 received in bypass mode');
-      } else {
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
+  async (error) => {
+    console.log('[axios] response error', { error });
+    const isLogoutRequest = error.config?.url?.includes('/auth/logout');
+    // if (error.response?.status === 401 && !isLogoutRequest) {
+    //   if (import.meta.env.VITE_BYPASS_AUTH === 'true') {
+    //     console.warn('[auth] 401 received in bypass mode');
+    //   } else {
+    //     try {
+    //       await api.post('/auth/logout');
+    //     } catch (_e) {
+    //       // best-effort — cookie may already be invalid
+    //     }
+    //     useAuthStore.getState().clearAuth();
+    //     window.location.href = '/login';
+    //   }
+    // }
+    // return Promise.reject(error);
   },
 );
 

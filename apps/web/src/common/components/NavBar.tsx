@@ -1,10 +1,11 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { logout as apiLogout } from '../../modules/auth/auth.api';
 import { useAuthStore } from '../../modules/auth/store/authStore';
+import { queryClient } from '../lib/queryClient';
 
 export default function NavBar() {
-  const navigate = useNavigate();
   const clearAuth = useAuthStore((s) => s.clearAuth);
+  const navigate = useNavigate();
 
   return (
     <div>
@@ -43,14 +44,12 @@ export default function NavBar() {
               Sell
             </Link>
             <button
-              onClick={async () => {
-                try {
-                  await apiLogout();
-                } catch (_e) {
-                  // ignore errors — still clear client state
-                }
-                clearAuth();
-                navigate({ to: '/login' });
+              onClick={() => {
+                apiLogout().then(() => {
+                  clearAuth();
+                  queryClient.clear();
+                  navigate({ to: '/login' });
+                });
               }}
               className="px-3 py-2 border rounded hover:bg-gray-100"
             >
