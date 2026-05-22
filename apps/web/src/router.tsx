@@ -80,6 +80,16 @@ const feedRoute = createRoute({
   path: '/',
   beforeLoad: requireAuth,
   component: FeedPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    q: typeof search.q === 'string' ? search.q : undefined,
+    category: typeof search.category === 'string' ? search.category : undefined,
+    sort:
+      search.sort === 'newest' || search.sort === 'low' || search.sort === 'high'
+        ? (search.sort as 'newest' | 'low' | 'high')
+        : undefined,
+    minPrice: typeof search.minPrice === 'number' ? search.minPrice : undefined,
+    maxPrice: typeof search.maxPrice === 'number' ? search.maxPrice : undefined,
+  }),
 });
 
 const itemsRoute = createRoute({
