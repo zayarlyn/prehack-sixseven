@@ -1,0 +1,9 @@
+{
+  "name": "@swap/types",
+  "version": "0.0.1",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "eslint src",
+    "format": "prettier --write src"
+  }
+}
