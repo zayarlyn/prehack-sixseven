@@ -14,5 +14,6 @@
     ".claude": true,
     ".prettier*": true,
     "eslint*": true
-  }
+  },
+  "prisma.pinToPrisma6": true
 }

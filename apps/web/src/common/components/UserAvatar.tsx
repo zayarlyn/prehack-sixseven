@@ -1,23 +1,33 @@
 import { PublicUser } from '@swap/types';
+import { Avatar, AvatarFallback, AvatarImage } from '@swap-web/common/components/ui/avatar';
+import { avatarBg } from '@swap-web/common/lib/avatar-color';
 
 interface UserAvatarProps {
   user: PublicUser;
+  size?: number;
 }
 
-export default function UserAvatar({ user }: UserAvatarProps) {
+export default function UserAvatar({ user, size = 32 }: UserAvatarProps) {
   const initials = user.fullName
     .split(' ')
     .map((n) => n[0])
+    .slice(0, 2)
     .join('')
     .toUpperCase();
 
-  if (user.avatarUrl) {
-    return <img src={user.avatarUrl} alt={user.fullName} className="w-8 h-8 rounded-full" />;
-  }
-
   return (
-    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold">
-      {initials}
-    </div>
+    <Avatar style={{ width: size, height: size }}>
+      <AvatarImage src={user.avatarUrl ?? undefined} alt={user.fullName} />
+      <AvatarFallback
+        style={{
+          background: avatarBg(user.fullName),
+          color: '#1a1a1a',
+          fontSize: size * 0.36,
+          fontWeight: 700,
+        }}
+      >
+        {initials}
+      </AvatarFallback>
+    </Avatar>
   );
 }

@@ -1,8 +1,13 @@
+import { Card, CardContent } from '@swap-web/common/components/ui/card';
+import { Skeleton } from '@swap-web/common/components/ui/skeleton';
+
 export default function ItemCardSkeleton() {
   return (
-    <div className="border rounded p-4 animate-pulse">
-      <div className="h-4 bg-gray-300 rounded mb-2"></div>
-      <div className="h-6 bg-gray-300 rounded w-1/3"></div>
-    </div>
+    <Card>
+      <CardContent className="p-4">
+        <Skeleton className="h-4 w-3/4 mb-2" />
+        <Skeleton className="h-6 w-1/3" />
+      </CardContent>
+    </Card>
   );
 }

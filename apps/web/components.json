@@ -4,12 +4,18 @@
   "rsc": false,
   "tsx": true,
   "tailwind": {
-    "config": "tailwind.config.js",
-    "css": "src/common/styles/globals.css"
+    "config": "tailwind.config.cjs",
+    "css": "src/common/styles/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
   },
   "aliases": {
-    "components": "@swap-web/components",
-    "utils": "@swap-web/common/lib/utils"
+    "components": "@swap-web/common/components/ui",
+    "utils": "@swap-web/common/lib/utils",
+    "ui": "@swap-web/common/components/ui",
+    "lib": "@swap-web/common/lib",
+    "hooks": "@swap-web/common/hooks"
   },
-  "baseColor": "neutral"
+  "iconLibrary": "lucide"
 }

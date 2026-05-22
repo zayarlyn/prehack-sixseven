@@ -3,49 +3,116 @@
 @tailwind utilities;
 
 @layer base {
+  /* ─── shadcn/ui semantic tokens (HSL, consumed by Tailwind config) ─── */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3%;
+    --background: 0 0% 97%;          /* #f7f7f7  page bg          */
+    --foreground: 0 0% 10%;          /* #1a1a1a  body text        */
+    --card: 0 0% 100%;               /* #ffffff  card surface     */
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3%;
-    --primary: 12 100% 51%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 12 96% 54%;           /* #fa4617  brand orange-red */
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89%;
-    --input: 0 0% 89%;
-    --ring: 12 100% 51%;
-    --radius: 0.5rem;
+    --secondary: 0 0% 97%;           /* #f7f7f7  surface-alt      */
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 93%;               /* #ececec  deep bg          */
+    --muted-foreground: 0 0% 42%;    /* #6b6b6b  secondary text   */
+    --accent: 12 100% 95%;           /* primary-tint on white     */
+    --accent-foreground: 12 96% 54%;
+    --destructive: 0 72% 51%;        /* #dc2626  error red        */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;              /* #e5e5e5  divider          */
+    --input: 0 0% 90%;
+    --ring: 12 96% 54%;
+    --radius: 0.5rem;                /* 8px — radius-md           */
   }
 
   .dark {
-    --background: 0 0% 3%;
+    --background: 0 0% 8%;
     --foreground: 0 0% 98%;
-    --card: 0 0% 3%;
+    --card: 0 0% 10%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3%;
+    --popover: 0 0% 10%;
     --popover-foreground: 0 0% 98%;
-    --primary: 12 100% 51%;
+    --primary: 12 96% 54%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 64%;
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62% 30%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 12 30% 15%;
+    --accent-foreground: 12 96% 65%;
+    --destructive: 0 72% 40%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 12 100% 51%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 12 96% 54%;
+  }
+
+  /* ─── OD design tokens (direct values, used in arbitrary Tailwind values
+         and plain CSS) ─── */
+  :root {
+    /* Colors */
+    --od-primary:             #fa4617;
+    --od-primary-hover:       #d93a13;
+    --od-primary-tint:        rgba(250, 70, 23, 0.09);
+    --od-primary-tint-strong: rgba(250, 70, 23, 0.14);
+    --od-primary-disabled:    #fca58a;
+    --od-bg:                  #f7f7f7;
+    --od-bg-deep:             #ececec;
+    --od-surface:             #ffffff;
+    --od-surface-alt:         #f7f7f7;
+    --od-bubble-received:     #f0f0f0;
+    --od-border:              #e5e5e5;
+    --od-border-strong:       #d4d4d4;
+    --od-text:                #1a1a1a;
+    --od-text-secondary:      #6b6b6b;
+    --od-text-tertiary:       #9a9a9a;
+    --od-success:             #10b981;
+    --od-success-dark:        #047857;
+    --od-error:               #dc2626;
+    --od-error-tint:          #fef2f2;
+
+    /* Shadows */
+    --od-shadow-nav:        0 1px 2px rgba(16, 24, 40, 0.04);
+    --od-shadow-card:       0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 12px rgba(16, 24, 40, 0.05);
+    --od-shadow-card-hover: 0 2px 4px rgba(16, 24, 40, 0.06), 0 12px 28px rgba(16, 24, 40, 0.09);
+    --od-shadow-popover:    0 8px 28px rgba(16, 24, 40, 0.14);
+    --od-shadow-modal:      0 16px 48px rgba(16, 24, 40, 0.18), 0 4px 12px rgba(16, 24, 40, 0.08);
+    --od-shadow-sticky:     0 -4px 16px rgba(16, 24, 40, 0.06);
+
+    /* Border radius */
+    --od-radius-xs:   4px;
+    --od-radius-sm:   6px;
+    --od-radius-md:   8px;
+    --od-radius-lg:   10px;
+    --od-radius-xl:   12px;
+    --od-radius-2xl:  14px;
+    --od-radius-pill: 999px;
+
+    /* Spacing (base unit: 4px) */
+    --od-space-1:  4px;
+    --od-space-2:  8px;
+    --od-space-3:  10px;
+    --od-space-4:  12px;
+    --od-space-5:  14px;
+    --od-space-6:  16px;
+    --od-space-7:  18px;
+    --od-space-8:  24px;
+    --od-space-9:  32px;
+    --od-space-10: 48px;
+    --od-space-11: 64px;
+
+    /* Component heights */
+    --od-height-nav:    64px;
+    --od-height-btn-lg: 50px;
+    --od-height-btn-md: 44px;
+    --od-height-btn-sm: 36px;
+    --od-height-input:  46px;
+
+    /* Typography */
+    --od-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --od-font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
   }
 }
 
@@ -55,5 +122,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--od-font-sans);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
   }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

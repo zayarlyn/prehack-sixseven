@@ -1,7 +1,15 @@
+import { Alert, AlertDescription } from '@swap-web/common/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
+
 interface ErrorStateProps {
   message: string;
 }
 
 export default function ErrorState({ message }: ErrorStateProps) {
-  return <div className="text-red-600 p-4 text-center">{message}</div>;
+  return (
+    <Alert variant="destructive" className="max-w-md mx-auto my-4">
+      <AlertCircle className="h-4 w-4" />
+      <AlertDescription>{message}</AlertDescription>
+    </Alert>
+  );
 }
