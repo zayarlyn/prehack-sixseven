@@ -5,7 +5,7 @@ export function useAuth() {
   const token = useAuthStore((state) => state.token);
   const isLoading = useAuthStore((state) => state.isLoading);
   const setUser = useAuthStore((state) => state.setUser);
-  const isAuthenticated = user !== null && user.onboarded;
+  const isAuthenticated = user != null && user.onboarded;
 
   return { user, token, isLoading, isAuthenticated, setUser };
 }
