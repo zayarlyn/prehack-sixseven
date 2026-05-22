@@ -4,6 +4,7 @@ import cors from 'cors';
 import { errorMiddleware } from './common/middleware/error.middleware';
 import authRoutes from './modules/auth/auth.routes';
 import itemsRoutes from './modules/items/items.routes';
+import conversationsRoutes from './modules/conversations/conversations.routes';
 
 const app = express();
 
@@ -18,9 +19,9 @@ app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/items', itemsRoutes);
+app.use('/api/conversations', conversationsRoutes);
 // app.use('/api/users', usersRoutes);
 // app.use('/api/uploads', uploadsRoutes);
-// app.use('/api/conversations', conversationsRoutes);
 // app.use('/api/transactions', transactionsRoutes);
 
 app.use(errorMiddleware);

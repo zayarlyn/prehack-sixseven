@@ -43,11 +43,28 @@ export async function getConversations(userId: string) {
       OR: [{ buyerId: userId }, { sellerId: userId }],
     },
     include: {
-      item: true,
+      item: {
+        include: {
+          itemImages: {
+            include: { s3Object: { select: { publicUrl: true } } },
+          },
+        },
+      },
       buyer: { select: { id: true, fullName: true, avatarUrl: true } },
       seller: { select: { id: true, fullName: true, avatarUrl: true } },
     },
     orderBy: { lastMessageAt: 'desc' },
+  });
+}
+
+export async function updateLastMessage(conversationId: string, userId: string): Promise<void> {
+  const conversation = await prisma.conversation.findUnique({ where: { id: conversationId } });
+  if (!conversation) throw notFound('Conversation');
+  const isParticipant = conversation.buyerId === userId || conversation.sellerId === userId;
+  if (!isParticipant) throw badRequest('Not authorized');
+  await prisma.conversation.update({
+    where: { id: conversationId },
+    data: { lastMessageAt: new Date() },
   });
 }
 
