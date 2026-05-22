@@ -1,7 +1,32 @@
 /// <reference types="node" />
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
+import * as admin from 'firebase-admin';
 
 const prisma = new PrismaClient();
+
+const firebaseApp = admin.initializeApp({
+  credential: admin.credential.cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  } as admin.ServiceAccount),
+  databaseURL: process.env.FIREBASE_DATABASE_URL,
+});
+
+const db = admin.database();
+
+async function seedFirebaseConversation(
+  firebaseId: string,
+  messages: { key: string; senderId: string; content: string; createdAt: number }[],
+  readBy: Record<string, number>,
+) {
+  const msgMap: Record<string, { senderId: string; type: string; content: string; createdAt: number }> = {};
+  for (const m of messages) {
+    msgMap[m.key] = { senderId: m.senderId, type: 'text', content: m.content, createdAt: m.createdAt };
+  }
+  await db.ref(`conversations/${firebaseId}`).set({ messages: msgMap, readBy });
+}
 
 async function main() {
   // Clear existing item-related data so seed is safe to re-run
@@ -15,7 +40,7 @@ async function main() {
     where: { id: '00000000-0000-0000-0000-000000000001' },
     update: {},
     create: {
-      id: '00000000-0000-0000-0000-000000000001',
+      id: DEV_USER,
       microsoftId: 'dev-bypass-microsoft-id',
       email: 'dev@university.edu',
       fullName: 'Dev User',
