@@ -17,3 +17,8 @@ export const getById = asyncHandler(async (req: Request, res: Response) => {
   const conversation = await conversationsService.getConversationById(req.params.conversationId, req.user!.id);
   success(res, conversation);
 });
+
+export const updateLastMessage = asyncHandler(async (req: Request, res: Response) => {
+  await conversationsService.updateLastMessage(req.params.conversationId, req.user!.id);
+  success(res, null, 204);
+});
