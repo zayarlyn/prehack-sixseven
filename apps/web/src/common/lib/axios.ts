@@ -15,26 +15,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const isLogoutRequest = error.config?.url?.includes('/auth/logout');
-    if (error.response?.status === 401 && !isLogoutRequest) {
-      if (import.meta.env.VITE_BYPASS_AUTH === 'true') {
-        // no-op in bypass mode
-      } else {
-        try {
-          await api.post('/auth/logout');
-        } catch (_e) {
-          // best-effort — cookie may already be invalid
-        }
-        useAuthStore.getState().clearAuth();
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  },
-);
+// api.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     const isLogoutRequest = error.config?.url?.includes('/auth/logout');
+//     if (error.response?.status === 401 && !isLogoutRequest) {
+//       if (import.meta.env.VITE_BYPASS_AUTH === 'true') {
+//         // no-op in bypass mode
+//       } else {
+//         try {
+//           await api.post('/auth/logout');
+//         } catch (_e) {
+//           // best-effort — cookie may already be invalid
+//         }
+//         useAuthStore.getState().clearAuth();
+//         window.location.href = '/login';
+//       }
+//     }
+//     return Promise.reject(error);
+//   },
+// );
 
 export { api };
 export default api;
