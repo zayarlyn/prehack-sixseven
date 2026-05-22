@@ -1,6 +1,11 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { logout as apiLogout } from '../../modules/auth/auth.api';
+import { useAuthStore } from '../../modules/auth/store/authStore';
 
 export default function NavBar() {
+  const navigate = useNavigate();
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+
   return (
     <div>
       {import.meta.env.VITE_BYPASS_AUTH === 'true' && (
@@ -33,9 +38,25 @@ export default function NavBar() {
               Profile
             </Link>
           </div>
-          <Link to="/items/new" className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
-            Sell
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/items/new" className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
+              Sell
+            </Link>
+            <button
+              onClick={async () => {
+                try {
+                  await apiLogout();
+                } catch (_e) {
+                  // ignore errors — still clear client state
+                }
+                clearAuth();
+                navigate({ to: '/login' });
+              }}
+              className="px-3 py-2 border rounded hover:bg-gray-100"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </nav>
     </div>
