@@ -22,7 +22,6 @@ export default function PriceFilter({ min, max, onChange }: PriceFilterProps) {
   const [prevMax, setPrevMax] = useState(max);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Sync local staging values when external filter is reset
   if (min !== prevMin) {
     setPrevMin(min);
     setLocalMin(min != null ? String(min) : '');
@@ -50,8 +49,10 @@ export default function PriceFilter({ min, max, onChange }: PriceFilterProps) {
   };
 
   const handleApply = () => {
-    const parsedMin = localMin !== '' ? parseFloat(localMin) : null;
-    const parsedMax = localMax !== '' ? parseFloat(localMax) : null;
+    const rawMin = parseFloat(localMin);
+    const rawMax = parseFloat(localMax);
+    const parsedMin = localMin !== '' && Number.isFinite(rawMin) ? rawMin : null;
+    const parsedMax = localMax !== '' && Number.isFinite(rawMax) ? rawMax : null;
     onChange(parsedMin, parsedMax);
     setOpen(false);
   };
@@ -68,7 +69,7 @@ export default function PriceFilter({ min, max, onChange }: PriceFilterProps) {
       <button
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          'flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-all duration-120',
+          'flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-all duration-150',
           active
             ? 'border border-transparent bg-accent font-semibold text-primary'
             : 'border border-border bg-white text-foreground hover:bg-muted',

@@ -55,20 +55,7 @@ export default function ItemCard({ item }: ItemCardProps) {
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
             {item.status === 'sold' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 8,
-                  left: 8,
-                  background: '#10b981',
-                  color: '#fff',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  padding: '4px 8px',
-                  borderRadius: 4,
-                  letterSpacing: 0.4,
-                }}
-              >
+              <div className="absolute left-2 top-2 rounded bg-[var(--od-success)] px-2 py-1 text-[11px] font-bold tracking-[0.4px] text-white">
                 SOLD
               </div>
             )}

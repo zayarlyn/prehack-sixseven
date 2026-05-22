@@ -2,9 +2,9 @@ import { FirebaseMessage } from '@swap/types';
 import { useEffect, useState } from 'react';
 
 export function useFirebaseChat(conversationId: string) {
-  const [messages, setMessages] = useState<FirebaseMessage[]>([]);
+  const [messages, _setMessages] = useState<FirebaseMessage[]>([]);
 
-  const sendMessage = (message: string) => {
+  const sendMessage = (_message: string) => {
     // TODO: Implement Firebase message sending
   };
 

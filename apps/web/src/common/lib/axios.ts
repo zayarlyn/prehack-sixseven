@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { useAuthStore } from '@swap-web/modules/auth/store/authStore';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
