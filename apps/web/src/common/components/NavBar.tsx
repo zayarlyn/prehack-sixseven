@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useRouter } from '@tanstack/react-router';
+import { Link, useNavigate, useSearch, useRouterState } from '@tanstack/react-router';
 import Logo from './Logo';
 import UserAvatar from './UserAvatar';
 import { useAuth } from '@swap-web/modules/auth/hooks/useAuth';
@@ -7,10 +7,9 @@ import { useAuth } from '@swap-web/modules/auth/hooks/useAuth';
 export default function NavBar() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const router = useRouter();
-
-  const isOnFeed = router.state.location.pathname === '/';
-  const rawSearch = router.state.location.search as Record<string, unknown>;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const rawSearch = useSearch({ strict: false }) as Record<string, unknown>;
+  const isOnFeed = pathname === '/';
   const currentQ: string = typeof rawSearch.q === 'string' ? rawSearch.q : '';
 
   const [inputValue, setInputValue] = useState(currentQ);

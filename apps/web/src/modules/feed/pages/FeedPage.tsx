@@ -1,4 +1,4 @@
-import { useNavigate, useRouter } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useItems } from '../hooks/useItems';
 import FilterBar from '../components/FilterBar';
 import FeedGrid from '../components/FeedGrid';
@@ -14,10 +14,8 @@ interface FeedSearch {
 }
 
 export default function FeedPage() {
-  const router = useRouter();
   const navigate = useNavigate();
-
-  const rawSearch = router.state.location.search as FeedSearch;
+  const rawSearch = useSearch({ strict: false }) as FeedSearch;
   const q = rawSearch.q ?? '';
   const category = rawSearch.category ?? 'all';
   const sort = rawSearch.sort ?? 'newest';
