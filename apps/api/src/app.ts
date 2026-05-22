@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { errorMiddleware } from './common/middleware/error.middleware';
 import authRoutes from './modules/auth/auth.routes';
+import itemsRoutes from './modules/items/items.routes';
 
 const app = express();
 
@@ -15,10 +16,9 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Mount routers here under /api prefix
 app.use('/api/auth', authRoutes);
+app.use('/api/items', itemsRoutes);
 // app.use('/api/users', usersRoutes);
-// app.use('/api/items', itemsRoutes);
 // app.use('/api/uploads', uploadsRoutes);
 // app.use('/api/conversations', conversationsRoutes);
 // app.use('/api/transactions', transactionsRoutes);

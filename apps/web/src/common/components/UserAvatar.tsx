@@ -1,9 +1,13 @@
-import { PublicUser } from '@swap/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@swap-web/common/components/ui/avatar';
 import { avatarBg } from '@swap-web/common/lib/avatar-color';
 
+interface AvatarUser {
+  fullName: string;
+  avatarUrl: string | null;
+}
+
 interface UserAvatarProps {
-  user: PublicUser;
+  user: AvatarUser;
   size?: number;
 }
 

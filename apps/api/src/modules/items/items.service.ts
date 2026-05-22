@@ -35,18 +35,48 @@ export async function getItem(itemId: string) {
   return item;
 }
 
-export async function listItems(limit: number = 20, page: number = 1) {
+export interface ListItemsParams {
+  limit?: number;
+  page?: number;
+  q?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: 'newest' | 'low' | 'high';
+}
+
+export async function listItems(params: ListItemsParams = {}) {
+  const { limit = 20, page = 1, q, category, minPrice, maxPrice, sort = 'newest' } = params;
   const skip = (page - 1) * limit;
+
+  const where = {
+    status: 'active' as const,
+    ...(category && { category }),
+    ...(q && { title: { contains: q, mode: 'insensitive' as const } }),
+    ...((minPrice != null || maxPrice != null) && {
+      price: {
+        ...(minPrice != null && { gte: minPrice }),
+        ...(maxPrice != null && { lte: maxPrice }),
+      },
+    }),
+  };
+
+  const orderBy =
+    sort === 'low'
+      ? { price: 'asc' as const }
+      : sort === 'high'
+        ? { price: 'desc' as const }
+        : { createdAt: 'desc' as const };
 
   const [items, total] = await Promise.all([
     prisma.item.findMany({
-      where: { status: 'active' },
+      where,
       include: { itemImages: true, seller: true },
       skip,
       take: limit,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
     }),
-    prisma.item.count({ where: { status: 'active' } }),
+    prisma.item.count({ where }),
   ]);
 
   return {

@@ -1,16 +1,18 @@
-import { Item } from '@swap/types';
-import ItemCard from '@swap-web/common/components/ItemCard';
+import ItemCard, { ItemCardItem } from '@swap-web/common/components/ItemCard';
+import ItemCardSkeleton from '@swap-web/common/components/ItemCardSkeleton';
 
 interface FeedGridProps {
-  items: Item[];
+  items: unknown[];
+  isLoading?: boolean;
+  skeletonCount?: number;
 }
 
-export default function FeedGrid({ items }: FeedGridProps) {
+export default function FeedGrid({ items, isLoading = false, skeletonCount = 10 }: FeedGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {items.map((item) => (
-        <ItemCard key={item.id} item={item} />
-      ))}
+    <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-[18px] lg:grid-cols-4 lg:gap-5 xl:grid-cols-5">
+      {isLoading
+        ? Array.from({ length: skeletonCount }).map((_, i) => <ItemCardSkeleton key={i} />)
+        : (items as ItemCardItem[]).map((item) => <ItemCard key={item.id} item={item} />)}
     </div>
   );
 }
