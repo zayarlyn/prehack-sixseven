@@ -12,6 +12,10 @@ export function notFound(resource: string): AppError {
   return new AppError(`${resource} not found`, 404);
 }
 
+export function unauthorized(msg = 'Unauthorized'): AppError {
+  return new AppError(msg, 401);
+}
+
 export function forbidden(): AppError {
   return new AppError('Forbidden', 403);
 }
