@@ -1,18 +1,15 @@
 import axios from 'axios';
 
-export const api = axios.create({
+const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
 });
 
+// In bypass mode we still attach a dev token for backend checks
 api.interceptors.request.use((config) => {
   if (import.meta.env.VITE_BYPASS_AUTH === 'true') {
+    config.headers = config.headers ?? {};
     config.headers.Authorization = 'Bearer dev-bypass-token';
-    return config;
-  }
-
-  const token = localStorage.getItem('swap_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -30,3 +27,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+export { api };
+export default api;
