@@ -31,10 +31,15 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       return next();
     }
 
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) return next(unauthorized());
+    // Prefer token from httpOnly cookie, fallback to Authorization header
+    const cookieToken = (req as any).cookies?.swap_token as string | undefined;
+    let token: string | undefined = cookieToken;
 
-    const token = authHeader.split(' ')[1];
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) return next(unauthorized());
+      token = authHeader.split(' ')[1];
+    }
 
     let decoded: { id: string };
     try {

@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { errorMiddleware } from './common/middleware/error.middleware';
 import authRoutes from './modules/auth/auth.routes';
@@ -12,6 +13,7 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(cookieParser());
 
 // Mount routers here under /api prefix
 app.use('/api/auth', authRoutes);
