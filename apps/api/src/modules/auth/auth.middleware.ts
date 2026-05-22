@@ -41,9 +41,12 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       token = authHeader.split(' ')[1];
     }
 
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) return next(new Error('JWT_SECRET environment variable is not set'));
+
     let decoded: { id: string };
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+      decoded = jwt.verify(token, jwtSecret) as { id: string };
     } catch {
       return next(unauthorized('Invalid or expired token'));
     }

@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '../../common/lib/prisma';
 import { msalClient, REDIRECT_URI } from '../../common/lib/msal';
 import { CompleteProfilePayload } from './auth.dto';
+import { badRequest } from '../../common/utils/errors';
 
 export async function getMicrosoftAuthUrl(): Promise<string> {
   return msalClient.getAuthCodeUrl({
@@ -32,8 +33,12 @@ export async function handleMicrosoftCallback(code: string) {
     throw { code: 'INVALID_TENANT', email };
   }
 
-  const microsoftId = claims.oid ?? claims.sub!;
-  const email = claims.email ?? claims.preferred_username!;
+  const microsoftId = claims.oid ?? claims.sub;
+  if (!microsoftId) throw badRequest('Missing user ID claim from Microsoft token');
+
+  const email = claims.email ?? claims.preferred_username;
+  if (!email) throw badRequest('Missing email claim from Microsoft token');
+
   const fullName = claims.name ?? email;
 
   const user = await prisma.user.upsert({
@@ -42,7 +47,9 @@ export async function handleMicrosoftCallback(code: string) {
     create: { microsoftId, email, fullName },
   });
 
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: '7d' });
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) throw new Error('JWT_SECRET environment variable is not set');
+  const token = jwt.sign({ id: user.id }, jwtSecret, { expiresIn: '7d' });
 
   return { user, token };
 }

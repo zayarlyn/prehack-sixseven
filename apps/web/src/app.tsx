@@ -8,7 +8,7 @@ import { useAuthStore } from '@swap-web/modules/auth/store/authStore';
 import { getMe } from '@swap-web/modules/auth/auth.api';
 
 export default function App() {
-  const { initBypassAuth, setUser, setToken, setIsLoading, clearAuth, isLoading } = useAuthStore();
+  const { initBypassAuth, setUser, setIsLoading, clearAuth, isLoading } = useAuthStore();
 
   useEffect(() => {
     if (import.meta.env.VITE_BYPASS_AUTH === 'true') {
@@ -22,7 +22,7 @@ export default function App() {
       .then((user) => setUser(user))
       .catch(() => clearAuth())
       .finally(() => setIsLoading(false));
-  }, [clearAuth, initBypassAuth, setIsLoading, setUser, setToken]);
+  }, [clearAuth, initBypassAuth, setIsLoading, setUser]);
 
   if (isLoading) {
     return (

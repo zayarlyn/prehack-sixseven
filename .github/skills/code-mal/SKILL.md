@@ -84,7 +84,7 @@ If any UI tasks exist:
 
 5. If Open Design MCP is unavailable or returns no result:
 
-```
+   Skip Step 1.5 and proceed directly to Step 2. Use Tailwind token classes for all colors and spacing per CLAUDE.md.
 
 ## Step 2 — Show a plan before writing any code
 
@@ -166,7 +166,7 @@ For each unchecked item:
    - Backend: apps/api/src/common/
    - Frontend: apps/web/src/common/components/ and common/components/ui/
    - Types: packages/types/src/
-   Never recreate something that already exists.
+     Never recreate something that already exists.
 
 5. Implement the task following the instructions and design spec exactly.
 
@@ -242,4 +242,7 @@ When all tasks are done or the team member wants to stop, show:
 - Never add draft status to items — items post as active immediately
 - If the team member seems confused, explain what you are doing
   in plain language before showing code
+
+```
+
 ```
