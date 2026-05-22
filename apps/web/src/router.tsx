@@ -1,4 +1,5 @@
 import { createRouter, createRoute, createRootRoute, Outlet, redirect } from '@tanstack/react-router';
+import { z } from 'zod';
 import { queryClient } from './common/lib/queryClient';
 import { getSession } from './modules/auth/auth.api';
 
@@ -16,7 +17,6 @@ import NewItemPage from '@swap-web/modules/items/pages/NewItemPage';
 import ItemDetailPage from '@swap-web/modules/items/pages/ItemDetailPage';
 
 import ConversationsPage from '@swap-web/modules/conversations/pages/ConversationsPage';
-import ConversationDetailPage from '@swap-web/modules/conversations/pages/ConversationDetailPage';
 
 import ProfilePage from '@swap-web/modules/profile/pages/ProfilePage';
 import EditProfilePage from '@swap-web/modules/profile/pages/EditProfilePage';
@@ -117,14 +117,8 @@ const conversationsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/conversations',
   beforeLoad: requireAuth,
+  validateSearch: z.object({ conv: z.string().optional() }),
   component: ConversationsPage,
-});
-
-const conversationDetailRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
-  path: '/conversations/$conversationId',
-  beforeLoad: requireAuth,
-  component: ConversationDetailPage,
 });
 
 const profileRoute = createRoute({
@@ -158,7 +152,6 @@ const routeTree = rootRoute.addChildren([
     newItemRoute,
     itemDetailRoute,
     conversationsRoute,
-    conversationDetailRoute,
     profileRoute,
     editProfileRoute,
     userProfileRoute,

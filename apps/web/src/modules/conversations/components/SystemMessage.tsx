@@ -1,11 +1,13 @@
 interface SystemMessageProps {
-  content: string;
+  label: string;
 }
 
-export default function SystemMessage({ content }: SystemMessageProps) {
+export default function SystemMessage({ label }: SystemMessageProps) {
   return (
-    <div className="flex justify-center mb-4">
-      <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs">{content}</span>
+    <div className="flex items-center gap-2.5 my-4">
+      <div className="flex-1 h-px bg-border" />
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
+      <div className="flex-1 h-px bg-border" />
     </div>
   );
 }
