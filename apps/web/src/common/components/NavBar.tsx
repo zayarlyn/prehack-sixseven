@@ -31,6 +31,10 @@ export default function NavBar() {
     }
   };
 
+  const handleSearchSubmit = () => {
+    navigate({ to: '/', search: { q: inputValue || undefined } as Record<string, unknown> });
+  };
+
   return (
     <header
       className="fixed top-0 left-0 right-0 z-30 border-b border-border"
@@ -71,6 +75,7 @@ export default function NavBar() {
           <input
             value={inputValue}
             onChange={(e) => handleSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !isOnFeed && handleSearchSubmit()}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             placeholder="Search items..."
