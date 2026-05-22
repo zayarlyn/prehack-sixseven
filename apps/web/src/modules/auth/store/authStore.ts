@@ -1,40 +1,41 @@
 import { create } from 'zustand';
-import type { User } from '@swap/types';
+import type { SessionUser } from '@swap/types';
 
 interface AuthState {
-  user: User | null;
+  user: SessionUser | null;
   token: string | null;
   isLoading: boolean;
-  setUser: (user: User | null) => void;
+  setUser: (user: SessionUser | null) => void;
   setToken: (token: string | null) => void;
+  setIsLoading: (loading: boolean) => void;
   clearAuth: () => void;
   initBypassAuth: () => void;
 }
 
-const DEV_BYPASS_USER: User = {
+const DEV_BYPASS_USER: SessionUser = {
   id: import.meta.env.VITE_BYPASS_USER_ID ?? '00000000-0000-0000-0000-000000000001',
-  microsoftId: 'dev-bypass-microsoft-id',
   email: 'dev@university.edu',
   fullName: 'Dev User',
   avatarUrl: null,
-  year: 2,
-  programLevel: 'undergraduate',
-  faculty: 'Faculty of Engineering',
-  major: 'Computer Science',
-  bio: null,
   onboarded: true,
-  createdAt: new Date(),
-  updatedAt: new Date(),
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
-  isLoading: false,
+  isLoading: true,
 
   setUser: (user) => set({ user }),
-  setToken: (token) => set({ token }),
-  clearAuth: () => set({ user: null, token: null }),
+  setIsLoading: (isLoading) => set({ isLoading }),
+  setToken: (token) => {
+    // Token is now stored in an httpOnly cookie set by the backend.
+    // Keep token in state for compatibility but do not persist to localStorage.
+    set({ token });
+  },
+  clearAuth: () => {
+    // Clear client-side state only; backend cookie will be cleared via /auth/logout
+    set({ user: null, token: null });
+  },
 
   initBypassAuth: () => {
     if (import.meta.env.VITE_BYPASS_AUTH === 'true') {
