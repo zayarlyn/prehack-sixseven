@@ -1,8 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
-import { faculties, majors, programLevels } from '@swap/types';
+import { CompleteProfileDto, type CompleteProfilePayload, faculties, majors, programLevels } from '@swap/types';
 import { useCompleteProfile } from '../hooks/useCompleteProfile';
 import Button from '@swap-web/common/components/Button';
 import { Form, FormItem, FormField, FormLabel, FormControl, FormMessage } from '@swap-web/common/components/ui/form';
@@ -10,19 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@swap-web/common/components/ui/input';
 import { Textarea } from '@swap-web/common/components/ui/textarea';
 
-const completeProfileSchema = z.object({
-  programLevel: z.enum(programLevels),
-  faculty: z.enum(faculties),
-  major: z.enum(majors),
-  year: z.coerce.number().min(1).max(6),
-  bio: z.string().max(200).optional(),
-});
-
-type CompleteProfileFormValues = z.infer<typeof completeProfileSchema>;
-
 export default function CompleteProfilePage() {
-  const form = useForm<CompleteProfileFormValues>({
-    resolver: zodResolver(completeProfileSchema),
+  const form = useForm<CompleteProfilePayload>({
+    resolver: zodResolver(CompleteProfileDto),
     defaultValues: {
       bio: '',
       year: 1,
@@ -31,7 +20,7 @@ export default function CompleteProfilePage() {
 
   const { mutate: completeProfile, isPending } = useCompleteProfile();
 
-  const onSubmit = (data: CompleteProfileFormValues) => {
+  const onSubmit = (data: CompleteProfilePayload) => {
     completeProfile(data);
   };
 

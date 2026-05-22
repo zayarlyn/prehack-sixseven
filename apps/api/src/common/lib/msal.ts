@@ -1,10 +1,18 @@
 import { ConfidentialClientApplication } from '@azure/msal-node';
 
+const clientId = process.env.MICROSOFT_CLIENT_ID;
+const clientSecret = process.env.MICROSOFT_CLIENT_SECRET;
+const tenantId = process.env.MICROSOFT_TENANT_ID;
+
+if (!clientId || !clientSecret || !tenantId) {
+  throw new Error('MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET, and MICROSOFT_TENANT_ID must all be set');
+}
+
 export const msalClient = new ConfidentialClientApplication({
   auth: {
-    clientId: process.env.MICROSOFT_CLIENT_ID!,
-    clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
-    authority: `https://login.microsoftonline.com/${process.env.MICROSOFT_TENANT_ID}`,
+    clientId,
+    clientSecret,
+    authority: `https://login.microsoftonline.com/${tenantId}`,
   },
 });
 

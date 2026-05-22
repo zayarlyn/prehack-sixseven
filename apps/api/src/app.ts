@@ -8,7 +8,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: 'http://localhost:6767',
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:6767',
     credentials: true,
   }),
 );

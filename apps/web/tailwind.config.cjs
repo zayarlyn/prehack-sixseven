@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+// eslint-disable-next-line no-undef
 module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
@@ -39,21 +40,21 @@ module.exports = {
           foreground: 'hsl(var(--card-foreground))',
         },
         /* OD design tokens */
-        'od-primary':         'var(--od-primary)',
-        'od-primary-hover':   'var(--od-primary-hover)',
-        'od-bg':              'var(--od-bg)',
-        'od-bg-deep':         'var(--od-bg-deep)',
-        'od-surface':         'var(--od-surface)',
-        'od-surface-alt':     'var(--od-surface-alt)',
+        'od-primary': 'var(--od-primary)',
+        'od-primary-hover': 'var(--od-primary-hover)',
+        'od-bg': 'var(--od-bg)',
+        'od-bg-deep': 'var(--od-bg-deep)',
+        'od-surface': 'var(--od-surface)',
+        'od-surface-alt': 'var(--od-surface-alt)',
         'od-bubble-received': 'var(--od-bubble-received)',
-        'od-border-strong':   'var(--od-border-strong)',
-        'od-text':            'var(--od-text)',
-        'od-text-secondary':  'var(--od-text-secondary)',
-        'od-text-tertiary':   'var(--od-text-tertiary)',
-        'od-success':         'var(--od-success)',
-        'od-success-dark':    'var(--od-success-dark)',
-        'od-error':           'var(--od-error)',
-        'od-error-tint':      'var(--od-error-tint)',
+        'od-border-strong': 'var(--od-border-strong)',
+        'od-text': 'var(--od-text)',
+        'od-text-secondary': 'var(--od-text-secondary)',
+        'od-text-tertiary': 'var(--od-text-tertiary)',
+        'od-success': 'var(--od-success)',
+        'od-success-dark': 'var(--od-success-dark)',
+        'od-error': 'var(--od-error)',
+        'od-error-tint': 'var(--od-error-tint)',
       },
       borderRadius: {
         /* shadcn tokens */
@@ -61,12 +62,12 @@ module.exports = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
         /* OD tokens */
-        'od-xs':   'var(--od-radius-xs)',
-        'od-sm':   'var(--od-radius-sm)',
-        'od-md':   'var(--od-radius-md)',
-        'od-lg':   'var(--od-radius-lg)',
-        'od-xl':   'var(--od-radius-xl)',
-        'od-2xl':  'var(--od-radius-2xl)',
+        'od-xs': 'var(--od-radius-xs)',
+        'od-sm': 'var(--od-radius-sm)',
+        'od-md': 'var(--od-radius-md)',
+        'od-lg': 'var(--od-radius-lg)',
+        'od-xl': 'var(--od-radius-xl)',
+        'od-2xl': 'var(--od-radius-2xl)',
         'od-pill': 'var(--od-radius-pill)',
       },
       keyframes: {
@@ -85,12 +86,12 @@ module.exports = {
         'od-spin': 'spin 700ms linear infinite',
       },
       boxShadow: {
-        'od-nav':        'var(--od-shadow-nav)',
-        'od-card':       'var(--od-shadow-card)',
+        'od-nav': 'var(--od-shadow-nav)',
+        'od-card': 'var(--od-shadow-card)',
         'od-card-hover': 'var(--od-shadow-card-hover)',
-        'od-popover':    'var(--od-shadow-popover)',
-        'od-modal':      'var(--od-shadow-modal)',
-        'od-sticky':     'var(--od-shadow-sticky)',
+        'od-popover': 'var(--od-shadow-popover)',
+        'od-modal': 'var(--od-shadow-modal)',
+        'od-sticky': 'var(--od-shadow-sticky)',
       },
       fontFamily: {
         'od-sans': 'var(--od-font-sans)',
@@ -98,5 +99,6 @@ module.exports = {
       },
     },
   },
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, no-undef
   plugins: [require('tailwindcss-animate')],
 };
