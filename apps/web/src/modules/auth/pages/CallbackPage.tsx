@@ -6,11 +6,12 @@ import { getMe } from '@swap-web/modules/auth/auth.api';
 
 export default function CallbackPage() {
   const navigate = useNavigate();
-  const { setToken, setUser } = useAuthStore();
+  const { setUser } = useAuthStore();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const next = params.get('next') ?? '/';
+    const rawNext = params.get('next');
+    const next = rawNext === '/auth/complete-profile' ? '/auth/complete-profile' : '/';
     const error = params.get('error');
 
     if (error) {
@@ -22,12 +23,12 @@ export default function CallbackPage() {
     getMe()
       .then((user) => {
         setUser(user);
-        navigate({ to: next as '/' });
+        navigate({ to: next });
       })
       .catch(() => {
         navigate({ to: '/login', search: { error: 'session_failed' } });
       });
-  }, [navigate, setToken, setUser]);
+  }, [navigate, setUser]);
 
   return (
     <div className="flex items-center justify-center min-h-screen gap-3">

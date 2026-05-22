@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import asyncHandler from '../../common/utils/asyncHandler';
 import { success } from '../../common/utils/response';
+import { unauthorized } from '../../common/utils/errors';
 import { FRONTEND_URL } from '../../common/lib/msal';
 import * as authService from './auth.service';
-import { unauthorized } from '@swap-api/common/utils/errors';
 
 export const microsoftLogin = asyncHandler(async (_req: Request, res: Response) => {
   const url = await authService.getMicrosoftAuthUrl();
@@ -48,7 +48,8 @@ export const logout = asyncHandler(async (_req: Request, res: Response) => {
 });
 
 export const completeProfile = asyncHandler(async (req: Request, res: Response) => {
-  const user = await authService.completeProfile(req.user!.id, req.body);
+  if (!req.user) throw unauthorized();
+  const user = await authService.completeProfile(req.user.id, req.body);
   success(res, user, 200);
 });
 
