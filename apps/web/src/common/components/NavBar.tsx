@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate, useSearch, useRouterState } from '@tanstack/react-router';
 import Logo from './Logo';
 import UserAvatar from './UserAvatar';
@@ -15,6 +15,7 @@ export default function NavBar() {
   const [inputValue, setInputValue] = useState(currentQ);
   const [prevQ, setPrevQ] = useState(currentQ);
   const [focused, setFocused] = useState(false);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (currentQ !== prevQ) {
     setPrevQ(currentQ);
@@ -24,10 +25,13 @@ export default function NavBar() {
   const handleSearch = (val: string) => {
     setInputValue(val);
     if (isOnFeed) {
-      navigate({
-        to: '/',
-        search: { ...rawSearch, q: val || undefined, page: undefined } as Record<string, unknown>,
-      });
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+      searchTimerRef.current = setTimeout(() => {
+        navigate({
+          to: '/',
+          search: { ...rawSearch, q: val || undefined, page: undefined } as Record<string, unknown>,
+        });
+      }, 300);
     }
   };
 

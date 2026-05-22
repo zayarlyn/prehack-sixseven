@@ -12,7 +12,7 @@ export default function LoginPage() {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) navigate({ to: '/' });
+    if (isAuthenticated) navigate({ href: '/' });
   }, [isAuthenticated, navigate]);
 
   const handleMicrosoftSignIn = () => {

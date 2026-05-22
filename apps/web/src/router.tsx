@@ -87,8 +87,8 @@ const feedRoute = createRoute({
       search.sort === 'newest' || search.sort === 'low' || search.sort === 'high'
         ? (search.sort as 'newest' | 'low' | 'high')
         : undefined,
-    minPrice: typeof search.minPrice === 'number' ? search.minPrice : undefined,
-    maxPrice: typeof search.maxPrice === 'number' ? search.maxPrice : undefined,
+    minPrice: Number.isFinite(Number(search.minPrice)) ? Number(search.minPrice) : undefined,
+    maxPrice: Number.isFinite(Number(search.maxPrice)) ? Number(search.maxPrice) : undefined,
   }),
 });
 

@@ -25,7 +25,7 @@ export default function CategoryChips({ value, onChange }: CategoryChipsProps) {
             key={cat}
             onClick={() => onChange(cat)}
             className={cn(
-              'h-9 shrink-0 rounded-full px-3.5 text-sm font-medium transition-all duration-120',
+              'h-9 shrink-0 rounded-full px-3.5 text-sm font-medium transition-all duration-150',
               selected
                 ? 'border border-transparent bg-accent text-primary font-semibold'
                 : 'border border-border bg-white text-foreground hover:bg-muted',
