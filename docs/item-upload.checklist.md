@@ -7,13 +7,93 @@ Excluded: "Save as Draft" button (no draft item status per project rules).
 
 ## Backend
 
-No changes needed. All endpoints are already implemented:
+Routes, controllers, and services are fully wired. Only `common/lib/storage.ts` is a stub (returns empty strings). The R2 integration below must be done before any upload works.
 
-- `POST /api/uploads/presign` — returns `{ objectKey, uploadUrl }`
+Endpoints (already wired, no changes needed to routes/controllers):
+
+- `POST /api/uploads/presign` — returns `{ objectKey, uploadUrl, publicUrl }`
 - `POST /api/uploads/confirm` — returns created `S3Object` with `id`
 - `POST /api/items` — accepts `CreateItemPayload` including `itemImageIds`
 
 `CreateItemDto` already includes: `title`, `description`, `price`, `category`, `condition`, `pickupLocation`, `openToOffers`, `itemImageIds`.
+
+---
+
+## Backend — Storage (Cloudflare R2)
+
+R2 exposes an S3-compatible API. Use AWS SDK v3 pointed at the R2 endpoint.
+
+### 1. Install packages
+
+- [ ] In `apps/api/`:
+  ```bash
+  npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
+  ```
+
+### 2. Env vars
+
+- [ ] Add to `apps/api/.env` and `apps/api/.env.example`:
+  ```
+  R2_ACCOUNT_ID=           # Cloudflare account ID (found in R2 dashboard)
+  R2_ACCESS_KEY_ID=        # R2 API token → Access Key ID
+  R2_SECRET_ACCESS_KEY=    # R2 API token → Secret Access Key
+  R2_BUCKET_NAME=          # bucket name
+  R2_PUBLIC_URL=           # public bucket URL, e.g. https://pub-xxxx.r2.dev or custom domain
+  ```
+  The bucket must have **Public access** enabled in the Cloudflare R2 dashboard so `publicUrl` links resolve.
+
+### 3. Implement `apps/api/src/common/lib/storage.ts`
+
+- [ ] Replace the stub:
+
+  ```ts
+  import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+  import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+  const client = new S3Client({
+    region: 'auto',
+    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+    },
+  });
+
+  export async function generatePresignedUrl(
+    objectKey: string,
+    contentType: string,
+  ): Promise<{ uploadUrl: string; publicUrl: string }> {
+    const command = new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: objectKey,
+      ContentType: contentType,
+    });
+
+    const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 });
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${objectKey}`;
+
+    return { uploadUrl, publicUrl };
+  }
+  ```
+
+  - Presigned URL expires in 300 s (5 min) — enough for the browser PUT.
+  - `publicUrl` is derived server-side from `R2_PUBLIC_URL` + key; never strip query params from `uploadUrl` to derive it (that gives the private S3 endpoint, not the public R2 URL).
+
+### 4. Return `publicUrl` from the presign endpoint
+
+- [ ] In `apps/api/src/modules/uploads/uploads.service.ts`, update `presign` to return `publicUrl`:
+
+  ```ts
+  return {
+    objectKey,
+    uploadUrl,
+    publicUrl, // add this
+  };
+  ```
+
+  The frontend must use this value when calling confirm — do not let the frontend derive it from `uploadUrl`.
+
+  > **Why:** A presigned `uploadUrl` points at `<accountId>.r2.cloudflarestorage.com` (private endpoint). Stripping query params gives the wrong host. The `publicUrl` (`R2_PUBLIC_URL/<key>`) is a different host entirely.
 
 ---
 
@@ -41,7 +121,7 @@ Replace `any` with proper types:
 - [ ] `usePresignUrl` — typed input/output:
   ```ts
   type PresignInput = { filename: string; contentType: string; context: 'item_image' | 'avatar' };
-  type PresignResult = { data: { objectKey: string; uploadUrl: string } };
+  type PresignResult = { data: { objectKey: string; uploadUrl: string; publicUrl: string } };
   mutationFn: (data: PresignInput) => axios.post<PresignResult>('/api/uploads/presign', data).then((r) => r.data);
   ```
 - [ ] `useConfirmUpload` — typed input/output:
@@ -124,9 +204,9 @@ interface ImageUploaderProps {
   2. For each file:
      a. Create `previewUrl = URL.createObjectURL(file)`
      b. Push `{ clientId, previewUrl, itemImageId: null, uploading: true, error: false }` into photos
-     c. Call `presignMutation.mutateAsync({ filename: file.name, contentType: file.type, context: 'item_image' })`
-     d. PUT `file` to `uploadUrl` with `Content-Type: file.type` using `fetch` (not the api instance — presigned URL is direct S3)
-     e. Call `confirmMutation.mutateAsync({ objectKey, publicUrl: uploadUrl.split('?')[0], contentType: file.type, sizeBytes: file.size, context: 'item_image' })`
+     c. Call `presignMutation.mutateAsync({ filename: file.name, contentType: file.type, context: 'item_image' })` → destructure `{ objectKey, uploadUrl, publicUrl }`
+     d. PUT `file` to `uploadUrl` with `Content-Type: file.type` using `fetch` (not the api instance — presigned URL is direct to R2, not through the backend)
+     e. Call `confirmMutation.mutateAsync({ objectKey, publicUrl, contentType: file.type, sizeBytes: file.size, context: 'item_image' })` — use `publicUrl` from the presign response, never derive it from `uploadUrl` (they point at different hosts)
      f. Update photo entry: `{ ...photo, itemImageId: result.data.id, uploading: false }`
      g. On error: `{ ...photo, uploading: false, error: true }`
 
