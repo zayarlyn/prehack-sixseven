@@ -20,33 +20,30 @@ export async function presign(userId: string, data: PresignPayload) {
   return {
     objectKey,
     uploadUrl,
+    publicUrl,
   };
 }
 
-export async function confirmUpload(userId: string, data: ConfirmUploadPayload) {
-  const s3Object = await prisma.s3Object.upsert({
-    where: { key: data.objectKey },
-    update: {
-      publicUrl: data.publicUrl,
-      sizeBytes: data.sizeBytes,
-    },
-    create: {
-      key: data.objectKey,
-      publicUrl: data.publicUrl,
-      contentType: data.contentType,
-      sizeBytes: data.sizeBytes,
-      context: data.context,
-    },
-  });
+export async function confirmUpload(_userId: string, data: ConfirmUploadPayload) {
+  return prisma.$transaction(async (tx) => {
+    const s3Object = await tx.s3Object.upsert({
+      where: { key: data.objectKey },
+      update: { publicUrl: data.publicUrl, sizeBytes: data.sizeBytes },
+      create: {
+        key: data.objectKey,
+        publicUrl: data.publicUrl,
+        contentType: data.contentType,
+        sizeBytes: data.sizeBytes,
+        context: data.context,
+      },
+    });
 
-  return s3Object;
-}
+    if (data.context === 'item_image') {
+      const existing = await tx.itemImage.findFirst({ where: { s3ObjectId: s3Object.id } });
+      if (existing) return existing;
+      return tx.itemImage.create({ data: { s3ObjectId: s3Object.id, itemId: null } });
+    }
 
-export async function createItemImage(data: { s3ObjectId: string }) {
-  return prisma.itemImage.create({
-    data: {
-      s3ObjectId: data.s3ObjectId,
-      itemId: null,
-    },
+    return s3Object;
   });
 }
