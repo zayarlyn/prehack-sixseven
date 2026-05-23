@@ -6,10 +6,13 @@ import { UpdateProfileDto } from './users.dto';
 
 const router = Router();
 
+router.get('/me', requireAuth, usersController.getMyProfile);
 router.get('/me/listings', requireAuth, usersController.getListings);
 router.get('/me/sold', requireAuth, usersController.getSold);
 router.get('/me/purchases', requireAuth, usersController.getPurchases);
 router.patch('/me', requireAuth, validate(UpdateProfileDto, 'body'), usersController.updateProfile);
+router.get('/:userId/listings', usersController.getListingsByUser);
+router.get('/:userId/sold', usersController.getSoldByUser);
 router.get('/:userId', usersController.getProfile);
 
 export default router;

@@ -24,7 +24,6 @@ app.use('/api/items', itemsRoutes);
 app.use('/api/conversations', conversationsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/uploads', uploadsRoutes);
-// app.use('/api/transactions', transactionsRoutes);
 
 app.use(errorMiddleware);
 

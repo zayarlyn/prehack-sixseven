@@ -19,7 +19,6 @@ import ItemDetailPage from '@swap-web/modules/items/pages/ItemDetailPage';
 import ConversationsPage from '@swap-web/modules/conversations/pages/ConversationsPage';
 
 import ProfilePage from '@swap-web/modules/profile/pages/ProfilePage';
-import EditProfilePage from '@swap-web/modules/profile/pages/EditProfilePage';
 import UserProfilePage from '@swap-web/modules/profile/pages/UserProfilePage';
 
 const rootRoute = createRootRoute({
@@ -128,13 +127,6 @@ const profileRoute = createRoute({
   component: ProfilePage,
 });
 
-const editProfileRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
-  path: '/profile/edit',
-  beforeLoad: requireAuth,
-  component: EditProfilePage,
-});
-
 const userProfileRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/profile/$userId',
@@ -153,7 +145,6 @@ const routeTree = rootRoute.addChildren([
     itemDetailRoute,
     conversationsRoute,
     profileRoute,
-    editProfileRoute,
     userProfileRoute,
   ]),
 ]);

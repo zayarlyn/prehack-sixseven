@@ -91,8 +91,19 @@ export interface User {
 
 export type PublicUser = Pick<
   User,
-  'id' | 'fullName' | 'avatarUrl' | 'faculty' | 'major' | 'year' | 'programLevel' | 'createdAt'
->;
+  'id' | 'fullName' | 'avatarUrl' | 'faculty' | 'major' | 'year' | 'programLevel' | 'bio' | 'createdAt'
+> & {
+  soldCount?: number;
+  purchasedCount?: number;
+  memberSince?: Date | string;
+};
+
+export interface ProfileStats {
+  sold: number;
+  purchased: number;
+  rating: number | null;
+  reviews: number | null;
+}
 
 export type SessionUser = Pick<User, 'id' | 'email' | 'fullName' | 'avatarUrl' | 'onboarded'>;
 

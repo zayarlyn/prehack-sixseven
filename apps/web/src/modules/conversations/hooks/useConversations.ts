@@ -17,6 +17,7 @@ type RawUser = {
   id: string;
   fullName: string;
   avatarUrl: string | null;
+  bio: string | null;
   createdAt: string;
   faculty: Faculty | null;
   major: Major | null;
@@ -69,6 +70,7 @@ function buildConversationWithDetails(
       id: rawOther.id,
       fullName: rawOther.fullName,
       avatarUrl: rawOther.avatarUrl,
+      bio: rawOther.bio,
       faculty: rawOther.faculty,
       major: rawOther.major,
       year: rawOther.year,
