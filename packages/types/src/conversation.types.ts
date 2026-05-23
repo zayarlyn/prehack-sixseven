@@ -17,6 +17,7 @@ export interface CreateConversationPayload {
 }
 
 export interface FirebaseMessage {
+  key: string;
   senderId: string | null;
   type: 'text' | 'system';
   content: string;
