@@ -34,26 +34,18 @@ async function seedFirebaseConversation(
 }
 
 async function main() {
-  // Clear existing item-related data so seed is safe to re-run
-  await prisma.transaction.deleteMany();
-  await prisma.conversation.deleteMany();
-  await prisma.itemImage.deleteMany();
-  await prisma.item.deleteMany();
+  const DEV_USER = '00000000-0000-0000-0000-000000000001';
 
-  // ── Cleanup (makes seed idempotent) ───────────────────────────────────────────
+  // ── Cleanup ───────────────────────────────────────────────────────────────────
   await prisma.transaction.deleteMany({});
   await prisma.conversation.deleteMany({});
   await prisma.itemImage.deleteMany({});
   await prisma.item.deleteMany({});
-  await prisma.user.deleteMany({
-    where: { microsoftId: { in: ['dev-bypass-microsoft-id', 'user1-ms', 'user2-ms', 'user3-ms'] } },
-  });
+  await prisma.user.deleteMany({});
 
-  // ─── Users ───────────────────────────────────────────────────────
-  const devUser = await prisma.user.upsert({
-    where: { id: '00000000-0000-0000-0000-000000000001' },
-    update: {},
-    create: {
+  // ─── Users ────────────────────────────────────────────────────────────────────
+  const devUser = await prisma.user.create({
+    data: {
       id: DEV_USER,
       microsoftId: 'dev-bypass-microsoft-id',
       email: 'dev@university.edu',
@@ -66,10 +58,8 @@ async function main() {
     },
   });
 
-  const pim = await prisma.user.upsert({
-    where: { microsoftId: 'pim-ms' },
-    update: {},
-    create: {
+  const pim = await prisma.user.create({
+    data: {
       microsoftId: 'pim-ms',
       email: 'pim@university.edu',
       fullName: 'Pim Suwannarat',
@@ -81,10 +71,8 @@ async function main() {
     },
   });
 
-  const tanya = await prisma.user.upsert({
-    where: { microsoftId: 'tanya-ms' },
-    update: {},
-    create: {
+  const tanya = await prisma.user.create({
+    data: {
       microsoftId: 'tanya-ms',
       email: 'tanya@university.edu',
       fullName: 'Tanya R.',
@@ -96,10 +84,8 @@ async function main() {
     },
   });
 
-  const boom = await prisma.user.upsert({
-    where: { microsoftId: 'boom-ms' },
-    update: {},
-    create: {
+  const boom = await prisma.user.create({
+    data: {
       microsoftId: 'boom-ms',
       email: 'boom@university.edu',
       fullName: 'Boom K.',
@@ -111,10 +97,8 @@ async function main() {
     },
   });
 
-  const earth = await prisma.user.upsert({
-    where: { microsoftId: 'earth-ms' },
-    update: {},
-    create: {
+  const earth = await prisma.user.create({
+    data: {
       microsoftId: 'earth-ms',
       email: 'earth@university.edu',
       fullName: 'Earth W.',
@@ -126,10 +110,8 @@ async function main() {
     },
   });
 
-  const mai = await prisma.user.upsert({
-    where: { microsoftId: 'mai-ms' },
-    update: {},
-    create: {
+  const mai = await prisma.user.create({
+    data: {
       microsoftId: 'mai-ms',
       email: 'mai@university.edu',
       fullName: 'Mai L.',
@@ -141,10 +123,8 @@ async function main() {
     },
   });
 
-  const jay = await prisma.user.upsert({
-    where: { microsoftId: 'jay-ms' },
-    update: {},
-    create: {
+  const jay = await prisma.user.create({
+    data: {
       microsoftId: 'jay-ms',
       email: 'jay@university.edu',
       fullName: 'Jay P.',
@@ -156,10 +136,8 @@ async function main() {
     },
   });
 
-  const tee = await prisma.user.upsert({
-    where: { microsoftId: 'tee-ms' },
-    update: {},
-    create: {
+  const tee = await prisma.user.create({
+    data: {
       microsoftId: 'tee-ms',
       email: 'tee@university.edu',
       fullName: 'Tee C.',
@@ -171,10 +149,8 @@ async function main() {
     },
   });
 
-  const nat = await prisma.user.upsert({
-    where: { microsoftId: 'nat-ms' },
-    update: {},
-    create: {
+  const nat = await prisma.user.create({
+    data: {
       microsoftId: 'nat-ms',
       email: 'nat@university.edu',
       fullName: 'Nat A.',
@@ -186,7 +162,7 @@ async function main() {
     },
   });
 
-  // ─── Items ────────────────────────────────────────────────────────
+  // ─── Items ────────────────────────────────────────────────────────────────────
   const now = new Date();
   const minsAgo = (n: number) => new Date(now.getTime() - n * 60 * 1000);
   const hoursAgo = (n: number) => new Date(now.getTime() - n * 60 * 60 * 1000);
@@ -413,20 +389,59 @@ async function main() {
     ],
   });
 
-  // ─── One conversation between dev user and pim ────────────────────
-  const firstItem = await prisma.item.findFirst({ where: { sellerId: pim.id } });
-  if (firstItem) {
+  // ─── Conversation: Dev User (buyer) ↔ Pim (seller) — Calculus book ────────────
+  const calcBook = await prisma.item.findFirst({ where: { sellerId: pim.id } });
+  if (calcBook) {
     await prisma.conversation.create({
       data: {
         firebaseId: 'demo-conv-1',
-        itemId: firstItem.id,
+        itemId: calcBook.id,
         buyerId: devUser.id,
         sellerId: pim.id,
       },
     });
+
+    const ms = (n: number) => Date.now() - n;
+    const min = 60 * 1000;
+    const hr = 60 * min;
+
+    await seedFirebaseConversation(
+      'demo-conv-1',
+      [
+        {
+          key: 'm1',
+          senderId: pim.id,
+          content: 'Hi! Still available. Highlighting is only in Ch.1–3, rest is clean.',
+          createdAt: ms(5 * hr),
+        },
+        {
+          key: 'm2',
+          senderId: DEV_USER,
+          content: 'Sounds good! Is Science Building Lobby pickup fine this week?',
+          createdAt: ms(4 * hr + 40 * min),
+        },
+        {
+          key: 'm3',
+          senderId: pim.id,
+          content: "Yep, I'm around weekdays after 1pm.",
+          createdAt: ms(4 * hr + 20 * min),
+        },
+        {
+          key: 'm4',
+          senderId: DEV_USER,
+          content: "Perfect, I'll come by tomorrow at 2pm. Thanks!",
+          createdAt: ms(4 * hr),
+        },
+        { key: 'm5', senderId: pim.id, content: 'Great, see you then!', createdAt: ms(3 * hr + 55 * min) },
+      ],
+      // Both users have read everything
+      { [DEV_USER]: ms(3 * hr), [pim.id]: ms(3 * hr + 50 * min) },
+    );
   }
 
-  console.log('Seed complete — 18 items, 9 users');
+  console.log('Seed complete — 18 items, 9 users, 1 conversation');
+
+  await firebaseApp.delete();
 }
 
 main()
