@@ -44,7 +44,7 @@ export default function FeedPage() {
   };
 
   return (
-    <div className="pt-16">
+    <div className="">
       <FilterBar
         q={q}
         category={category}
@@ -56,7 +56,7 @@ export default function FeedPage() {
         onClearFilters={clearFilters}
       />
 
-      <main className="mx-auto px-5 pb-28" style={{ maxWidth: 1440 }}>
+      <main className="max-w-[500px] md:max-w-[1120px] mx-auto px-6 pb-28">
         {isEmpty ? (
           <EmptyState
             title="No items match your filters"
