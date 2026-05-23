@@ -86,71 +86,73 @@ export default function ConversationsPage() {
   const dayGroups = groupByDay(messages);
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col pt-8">
+    <div className="h-screen overflow-hidden flex flex-col">
       <div className="flex-1 min-h-0 overflow-hidden p-4 md:p-6">
-        <div
-          className={cn(
-            'h-full grid rounded-xl border shadow overflow-hidden bg-white',
-            'grid-cols-1 lg:grid-cols-[360px_1fr]',
-          )}
-        >
-          {/* Left sidebar */}
-          <div className={cn('border-r flex flex-col min-h-0', mobilePane !== 'list' && 'hidden lg:flex')}>
-            <ConversationList conversations={conversations} activeId={activeId} onSelect={handleSelect} />
-          </div>
+        <div className="max-w-[500px] md:max-w-[1120px] mx-auto h-full">
+          <div
+            className={cn(
+              'h-full grid rounded-xl border shadow overflow-hidden bg-white',
+              'grid-cols-1 lg:grid-cols-[360px_1fr]',
+            )}
+          >
+            {/* Left sidebar */}
+            <div className={cn('border-r flex flex-col min-h-0', mobilePane !== 'list' && 'hidden lg:flex')}>
+              <ConversationList conversations={conversations} activeId={activeId} onSelect={handleSelect} />
+            </div>
 
-          {/* Right thread pane */}
-          <div className={cn('flex flex-col min-h-0', mobilePane !== 'thread' && 'hidden lg:flex')}>
-            {activeConv ? (
-              <>
-                {/* Thread header */}
-                <div className="h-16 border-b flex items-center gap-3 px-4 flex-shrink-0">
-                  <button className="lg:hidden p-1 -ml-1 rounded-full hover:bg-accent" onClick={handleBack}>
-                    <ArrowLeft className="w-5 h-5" />
-                  </button>
-                  <UserAvatar user={activeConv.otherUser} size={38} />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm truncate">{activeConv.otherUser.fullName}</p>
-                    {/* TODO: replace with real presence once Firebase presence is implemented */}
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                      <span className="text-xs text-muted-foreground">Active now</span>
+            {/* Right thread pane */}
+            <div className={cn('flex flex-col min-h-0', mobilePane !== 'thread' && 'hidden lg:flex')}>
+              {activeConv ? (
+                <>
+                  {/* Thread header */}
+                  <div className="h-16 border-b flex items-center gap-3 px-4 flex-shrink-0">
+                    <button className="lg:hidden p-1 -ml-1 rounded-full hover:bg-accent" onClick={handleBack}>
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <UserAvatar user={activeConv.otherUser} size={38} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm truncate">{activeConv.otherUser.fullName}</p>
+                      {/* TODO: replace with real presence once Firebase presence is implemented */}
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                        <span className="text-xs text-muted-foreground">Active now</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Pinned item */}
-                <PinnedItemCard item={activeConv.item} />
+                  {/* Pinned item */}
+                  <PinnedItemCard item={activeConv.item} />
 
-                {/* Messages area */}
-                <div
-                  ref={scrollRef}
-                  className="flex-1 overflow-y-auto min-h-0 bg-muted/30 px-7 py-3 [&::-webkit-scrollbar]:hidden"
-                >
-                  {dayGroups.map(({ label, messages: dayMessages }) => (
-                    <div key={label}>
-                      <SystemMessage label={label} />
-                      {dayMessages.map((msg, i) => {
-                        const isGrouped = i > 0 && dayMessages[i - 1].senderId === msg.senderId;
-                        return (
-                          <MessageBubble
-                            key={msg.key}
-                            message={msg}
-                            isSent={msg.senderId === user?.id}
-                            isGrouped={isGrouped}
-                          />
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
+                  {/* Messages area */}
+                  <div
+                    ref={scrollRef}
+                    className="flex-1 overflow-y-auto min-h-0 bg-muted/30 px-7 py-3 [&::-webkit-scrollbar]:hidden"
+                  >
+                    {dayGroups.map(({ label, messages: dayMessages }) => (
+                      <div key={label}>
+                        <SystemMessage label={label} />
+                        {dayMessages.map((msg, i) => {
+                          const isGrouped = i > 0 && dayMessages[i - 1].senderId === msg.senderId;
+                          return (
+                            <MessageBubble
+                              key={msg.key}
+                              message={msg}
+                              isSent={msg.senderId === user?.id}
+                              isGrouped={isGrouped}
+                            />
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
 
-                {/* Composer */}
-                <MessageInput onSend={sendMessage} />
-              </>
-            ) : (
-              <EmptyThread />
-            )}
+                  {/* Composer */}
+                  <MessageInput onSend={sendMessage} />
+                </>
+              ) : (
+                <EmptyThread />
+              )}
+            </div>
           </div>
         </div>
       </div>

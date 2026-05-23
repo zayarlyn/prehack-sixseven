@@ -6,6 +6,7 @@ import authRoutes from './modules/auth/auth.routes';
 import itemsRoutes from './modules/items/items.routes';
 import usersRoutes from './modules/users/users.routes';
 import conversationsRoutes from './modules/conversations/conversations.routes';
+import uploadsRoutes from './modules/uploads/uploads.routes';
 
 const app = express();
 
@@ -22,7 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/items', itemsRoutes);
 app.use('/api/conversations', conversationsRoutes);
 app.use('/api/users', usersRoutes);
-// app.use('/api/uploads', uploadsRoutes);
+app.use('/api/uploads', uploadsRoutes);
 // app.use('/api/transactions', transactionsRoutes);
 
 app.use(errorMiddleware);

@@ -48,11 +48,15 @@ export default function ItemCard({ item }: ItemCardProps) {
         }}
       >
         {item.itemImages.length > 0 ? (
-          <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', overflow: 'hidden' }}>
+          <div
+            className="p-2"
+            style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', overflow: 'hidden' }}
+          >
             <img
               src={item.itemImages[0].url}
               alt={item.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              className="rounded-od-xs"
             />
             {item.status === 'sold' && (
               <div className="absolute left-2 top-2 rounded bg-[var(--od-success)] px-2 py-1 text-[11px] font-bold tracking-[0.4px] text-white">
