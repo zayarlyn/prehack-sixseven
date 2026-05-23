@@ -3,6 +3,11 @@ import asyncHandler from '../../common/utils/asyncHandler';
 import * as usersService from './users.service';
 import { success } from '../../common/utils/response';
 
+export const getMyProfile = asyncHandler(async (req: Request, res: Response) => {
+  const profile = await usersService.getMyProfile(req.user!.id);
+  success(res, profile);
+});
+
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
   const profile = await usersService.getPublicProfile(req.params.userId);
   success(res, profile);
@@ -26,4 +31,14 @@ export const getSold = asyncHandler(async (req: Request, res: Response) => {
 export const getPurchases = asyncHandler(async (req: Request, res: Response) => {
   const transactions = await usersService.getUserPurchases(req.user!.id);
   success(res, transactions);
+});
+
+export const getListingsByUser = asyncHandler(async (req: Request, res: Response) => {
+  const items = await usersService.getUserListingsPublic(req.params.userId);
+  success(res, items);
+});
+
+export const getSoldByUser = asyncHandler(async (req: Request, res: Response) => {
+  const items = await usersService.getUserSoldPublic(req.params.userId);
+  success(res, items);
 });
