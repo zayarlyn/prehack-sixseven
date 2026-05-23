@@ -15,7 +15,7 @@ interface FilterBarProps {
 
 export default function FilterBar({ category, sort, minPrice, maxPrice, total, onFilterChange }: FilterBarProps) {
   return (
-    <div className="mx-auto px-5" style={{ maxWidth: 1440 }}>
+    <div className="max-w-[500px] md:max-w-[1120px] mx-auto px-6">
       <div className="flex flex-wrap items-center gap-2.5 py-4">
         <CategoryChips
           value={category}
