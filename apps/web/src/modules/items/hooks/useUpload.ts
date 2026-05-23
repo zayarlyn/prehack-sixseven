@@ -6,7 +6,6 @@ type PresignResult = { data: { objectKey: string; uploadUrl: string; publicUrl: 
 
 type ConfirmInput = {
   objectKey: string;
-  publicUrl: string;
   contentType: string;
   sizeBytes?: number;
   context: 'item_image' | 'avatar';

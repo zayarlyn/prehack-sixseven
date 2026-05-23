@@ -25,13 +25,15 @@ export async function presign(userId: string, data: PresignPayload) {
 }
 
 export async function confirmUpload(_userId: string, data: ConfirmUploadPayload) {
+  const publicUrl = `${process.env.R2_PUBLIC_URL}/${data.objectKey}`;
+
   return prisma.$transaction(async (tx) => {
     const s3Object = await tx.s3Object.upsert({
       where: { key: data.objectKey },
-      update: { publicUrl: data.publicUrl, sizeBytes: data.sizeBytes },
+      update: { sizeBytes: data.sizeBytes },
       create: {
         key: data.objectKey,
-        publicUrl: data.publicUrl,
+        publicUrl,
         contentType: data.contentType,
         sizeBytes: data.sizeBytes,
         context: data.context,

@@ -35,7 +35,7 @@ export async function createItem(sellerId: string, data: CreateItemPayload) {
 
     if (data.itemImageIds && data.itemImageIds.length > 0) {
       await tx.itemImage.updateMany({
-        where: { id: { in: data.itemImageIds } },
+        where: { id: { in: data.itemImageIds }, itemId: null },
         data: { itemId: created.id },
       });
     }
@@ -50,21 +50,18 @@ export async function createItem(sellerId: string, data: CreateItemPayload) {
 }
 
 export async function getItem(itemId: string) {
-  const item = await prisma.item.findUnique({
-    where: { id: itemId },
-    include: { ...itemImagesInclude, seller: true },
-  });
+  const exists = await prisma.item.findUnique({ where: { id: itemId }, select: { id: true, sellerId: true } });
 
-  if (!item) throw notFound('Item');
+  if (!exists) throw notFound('Item');
 
-  await prisma.item.update({
-    where: { id: itemId },
-    data: { viewCount: { increment: 1 } },
-  });
-
-  const sellerSoldCount = await prisma.item.count({
-    where: { sellerId: item.sellerId, status: 'sold' },
-  });
+  const [item, sellerSoldCount] = await Promise.all([
+    prisma.item.update({
+      where: { id: itemId },
+      data: { viewCount: { increment: 1 } },
+      include: { ...itemImagesInclude, seller: true },
+    }),
+    prisma.item.count({ where: { sellerId: exists.sellerId, status: 'sold' } }),
+  ]);
 
   return { ...mapItemImages(item), sellerSoldCount };
 }
