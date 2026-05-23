@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { cn } from '@swap-web/common/lib/utils';
 import LoadingSpinner from '@swap-web/common/components/LoadingSpinner';
 import CategoryThumbnail from '@swap-web/common/components/CategoryThumbnail';
@@ -48,7 +48,7 @@ function UploadThumb({ photo, isPrimary, category, onSetPrimary, onRemove, onRet
       )}
     >
       {photo.previewUrl && !photo.uploading ? (
-        <img src={photo.previewUrl} className="w-full h-full object-cover" />
+        <img src={photo.previewUrl} alt="" className="w-full h-full object-cover" />
       ) : (
         <CategoryThumbnail category={(category || 'other') as Category} hideLabel />
       )}
@@ -76,6 +76,7 @@ function UploadThumb({ photo, isPrimary, category, onSetPrimary, onRemove, onRet
 
       <button
         type="button"
+        aria-label="Remove photo"
         onClick={(e) => {
           e.stopPropagation();
           onRemove(photo.clientId);
@@ -94,47 +95,55 @@ function UploadThumb({ photo, isPrimary, category, onSetPrimary, onRemove, onRet
 export default function ImageUploader({ photos, onChange, category }: ImageUploaderProps) {
   const [drag, setDrag] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const photosRef = useRef(photos);
   const presignMutation = usePresignUrl();
   const confirmMutation = useConfirmUpload();
 
   useEffect(() => {
+    photosRef.current = photos;
+  }, [photos]);
+
+  useEffect(() => {
     return () => {
-      photos.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+      photosRef.current.forEach((p) => URL.revokeObjectURL(p.previewUrl));
     };
   }, []);
 
-  async function uploadFile(file: File, clientId: string, currentPhotos: UploadedPhoto[]) {
-    try {
-      const presign = await presignMutation.mutateAsync({
-        filename: file.name,
-        contentType: file.type,
-        context: 'item_image',
-      });
-      const { objectKey, uploadUrl, publicUrl } = presign.data;
+  const uploadFile = useCallback(
+    async (file: File, clientId: string) => {
+      try {
+        const presign = await presignMutation.mutateAsync({
+          filename: file.name,
+          contentType: file.type,
+          context: 'item_image',
+        });
+        const { objectKey, uploadUrl } = presign.data;
 
-      await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
-      });
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type },
+        });
+        if (!uploadResponse.ok) throw new Error(`Upload failed: ${uploadResponse.status}`);
 
-      const confirm = await confirmMutation.mutateAsync({
-        objectKey,
-        publicUrl,
-        contentType: file.type,
-        sizeBytes: file.size,
-        context: 'item_image',
-      });
+        const confirm = await confirmMutation.mutateAsync({
+          objectKey,
+          contentType: file.type,
+          sizeBytes: file.size,
+          context: 'item_image',
+        });
 
-      onChange(
-        currentPhotos.map((p) =>
-          p.clientId === clientId ? { ...p, itemImageId: confirm.data.id, uploading: false } : p,
-        ),
-      );
-    } catch {
-      onChange(currentPhotos.map((p) => (p.clientId === clientId ? { ...p, uploading: false, error: true } : p)));
-    }
-  }
+        onChange(
+          photosRef.current.map((p) =>
+            p.clientId === clientId ? { ...p, itemImageId: confirm.data.id, uploading: false } : p,
+          ),
+        );
+      } catch {
+        onChange(photosRef.current.map((p) => (p.clientId === clientId ? { ...p, uploading: false, error: true } : p)));
+      }
+    },
+    [presignMutation, confirmMutation, onChange],
+  );
 
   function handleFiles(files: FileList) {
     const remaining = 5 - photos.length;
@@ -150,7 +159,7 @@ export default function ImageUploader({ photos, onChange, category }: ImageUploa
     const next = [...photos, ...newPhotos];
     onChange(next);
 
-    toUpload.forEach((file, i) => uploadFile(file, newPhotos[i].clientId, next));
+    toUpload.forEach((file, i) => uploadFile(file, newPhotos[i].clientId));
   }
 
   function handleRemove(clientId: string) {
@@ -168,13 +177,12 @@ export default function ImageUploader({ photos, onChange, category }: ImageUploa
   function handleRetry(clientId: string) {
     const photo = photos.find((p) => p.clientId === clientId);
     if (!photo) return;
-    const updated = photos.map((p) => (p.clientId === clientId ? { ...p, uploading: true, error: false } : p));
-    onChange(updated);
+    onChange(photos.map((p) => (p.clientId === clientId ? { ...p, uploading: true, error: false } : p)));
     fetch(photo.previewUrl)
       .then((r) => r.blob())
       .then((blob) => {
         const file = new File([blob], 'retry.jpg', { type: blob.type || 'image/jpeg' });
-        uploadFile(file, clientId, updated);
+        uploadFile(file, clientId);
       });
   }
 

@@ -53,7 +53,7 @@ export default function ImageCarousel({ images, category }: ImageCarouselProps) 
   return (
     <div>
       {/* Main image */}
-      <div className="relative w-full aspect-square rounded-xl overflow-hidden border border-border bg-[#f1f1f1]">
+      <div className="relative w-full aspect-square rounded-xl overflow-hidden border border-border bg-muted">
         {images.length > 0 ? (
           <img src={images[idx].url} alt="" className="w-full h-full object-cover" />
         ) : (
