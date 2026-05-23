@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Input } from '@swap-web/common/components/ui/input';
 import { Textarea } from '@swap-web/common/components/ui/textarea';
@@ -30,7 +30,7 @@ const CONDITION_OPTIONS = [
 interface SectionProps {
   title?: string;
   hint?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 function Section({ title, hint, children }: SectionProps) {
@@ -52,7 +52,7 @@ interface FieldProps {
   hint?: string;
   optional?: boolean;
   error?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 function Field({ label, hint, optional, error, children }: FieldProps) {
@@ -74,6 +74,7 @@ function Field({ label, hint, optional, error, children }: FieldProps) {
 interface Errors {
   photos?: string;
   title?: string;
+  description?: string;
   price?: string;
   category?: string;
   condition?: string;
@@ -105,7 +106,8 @@ export default function NewItemPage() {
     else if (!allUploaded) e.photos = 'Some photos failed to upload. Please retry or remove them.';
 
     if (!title.trim()) e.title = 'Title is required.';
-    if (!price.trim()) e.price = 'Price is required.';
+    if (!description.trim()) e.description = 'Description is required.';
+    if (!price.trim() || Number(price) <= 0) e.price = 'Price must be greater than 0.';
     if (!category) e.category = 'Please select a category.';
     if (!condition) e.condition = 'Please select a condition.';
     return e;
@@ -236,10 +238,10 @@ export default function NewItemPage() {
                 />
               </Field>
 
-              <Field label="Description">
+              <Field label="Description" error={errors.description}>
                 <Textarea
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => handleChange(setDescription, 'description')(e.target.value)}
                   rows={5}
                   placeholder="Describe the condition, included accessories, reason for selling…"
                   className="border-[1.5px] rounded-[6px] resize-none focus-visible:ring-0 focus-visible:border-primary focus-visible:shadow-[0_0_0_4px_rgba(250,70,23,0.09)]"

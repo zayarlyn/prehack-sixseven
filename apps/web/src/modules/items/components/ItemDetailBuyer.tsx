@@ -93,7 +93,7 @@ export default function ItemDetailBuyer({ item }: ItemDetailBuyerProps) {
         <span className="bg-accent text-primary text-[11.5px] font-semibold px-2.5 py-1 rounded-full">
           {categoryLabel}
         </span>
-        <span className="bg-[#f1f1f1] text-muted-foreground text-[11.5px] font-semibold px-2.5 py-1 rounded-full capitalize">
+        <span className="bg-muted text-muted-foreground text-[11.5px] font-semibold px-2.5 py-1 rounded-full capitalize">
           {conditionLabel}
         </span>
         <button

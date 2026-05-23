@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ItemWithDetails } from '@swap/types';
 import { Button } from '@swap-web/common/components/ui/button';
@@ -98,7 +98,7 @@ export default function ItemDetailSeller({ item }: ItemDetailSellerProps) {
         <span className="bg-accent text-primary text-[11.5px] font-semibold px-2.5 py-1 rounded-full">
           {categoryLabel}
         </span>
-        <span className="bg-[#f1f1f1] text-muted-foreground text-[11.5px] font-semibold px-2.5 py-1 rounded-full capitalize">
+        <span className="bg-muted text-muted-foreground text-[11.5px] font-semibold px-2.5 py-1 rounded-full capitalize">
           {conditionLabel}
         </span>
         <button
@@ -119,9 +119,6 @@ export default function ItemDetailSeller({ item }: ItemDetailSellerProps) {
 
       {/* Actions block */}
       <div className="bg-white border border-border rounded-lg p-4 flex flex-col gap-3">
-        <Button variant="outline" className="w-full" asChild>
-          <Link to="/items/new">Edit listing</Link>
-        </Button>
         <Button className="w-full h-[50px] text-[15px] font-semibold" onClick={() => setMarkAsSoldOpen(true)}>
           Mark as Sold
         </Button>

@@ -1,18 +1,18 @@
 # Item Upload — Implementation Checklist
 
-Design reference: `docs/reference-design/upload.html`
+Design reference: `docs/reference-design/item-upload.html`
 Excluded: "Save as Draft" button (no draft item status per project rules).
 
 ---
 
 ## Backend
 
-Routes, controllers, and services are fully wired. Only `common/lib/storage.ts` is a stub (returns empty strings). The R2 integration below must be done before any upload works.
+Routes, controllers, and services are fully wired. `common/lib/storage.ts` is implemented with Cloudflare R2 using AWS SDK v3.
 
 Endpoints (already wired, no changes needed to routes/controllers):
 
 - `POST /api/uploads/presign` — returns `{ objectKey, uploadUrl, publicUrl }`
-- `POST /api/uploads/confirm` — returns created `S3Object` with `id`
+- `POST /api/uploads/confirm` — returns `ItemImage` with `id` for `context: 'item_image'`, otherwise the `S3Object`
 - `POST /api/items` — accepts `CreateItemPayload` including `itemImageIds`
 
 `CreateItemDto` already includes: `title`, `description`, `price`, `category`, `condition`, `pickupLocation`, `openToOffers`, `itemImageIds`.
