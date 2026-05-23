@@ -1,10 +1,27 @@
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+const client = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+  },
+});
+
 export async function generatePresignedUrl(
-  _objectKey: string,
-  _contentType: string,
+  objectKey: string,
+  contentType: string,
 ): Promise<{ uploadUrl: string; publicUrl: string }> {
-  // TODO: Implement with actual storage provider (S3, Firebase Storage, etc.)
-  return {
-    uploadUrl: '',
-    publicUrl: '',
-  };
+  const command = new PutObjectCommand({
+    Bucket: process.env.R2_BUCKET_NAME,
+    Key: objectKey,
+    ContentType: contentType,
+  });
+
+  const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 });
+  const publicUrl = `${process.env.R2_PUBLIC_URL}/${objectKey}`;
+
+  return { uploadUrl, publicUrl };
 }
