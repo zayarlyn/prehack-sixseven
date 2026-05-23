@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { faculties, majors, programLevels, type PublicUser } from '@swap/types';
 import { useAuth } from '@swap-web/modules/auth/hooks/useAuth';
 import UserAvatar from '@swap-web/common/components/UserAvatar';
@@ -76,24 +76,8 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
   const [faculty, setFaculty] = useState(user.faculty ?? '');
   const [major, setMajor] = useState(user.major ?? '');
   const [bio, setBio] = useState(user.bio ?? '');
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const yearOptions = YEAR_OPTIONS_BY_LEVEL[programLevel] ?? [];
-
-  const avatarUser = {
-    fullName: displayName || user.fullName,
-    avatarUrl: avatarPreview ?? user.avatarUrl,
-  };
-
-  const handleAvatarClick = () => fileInputRef.current?.click();
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAvatarPreview(URL.createObjectURL(file));
-  };
 
   const handleSave = () => {
     updateProfile(
@@ -184,63 +168,9 @@ export default function EditProfileModal({ user, onClose }: EditProfileModalProp
         >
           {/* Left column */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <div style={{ position: 'relative' }}>
-              <UserAvatar user={avatarUser} size={112} />
-              <button
-                aria-label="Change photo"
-                onClick={handleAvatarClick}
-                style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  right: 0,
-                  width: 34,
-                  height: 34,
-                  borderRadius: '50%',
-                  background: 'var(--od-primary)',
-                  color: '#fff',
-                  border: '3px solid #fff',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 2px 6px rgba(250,70,23,0.3)',
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M3 7.5a2 2 0 0 1 2-2h2.5l1.7-2h5.6l1.7 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-10Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinejoin="round"
-                  />
-                  <circle cx="12" cy="13" r="3.6" stroke="currentColor" strokeWidth="2" />
-                </svg>
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={handleFileChange}
-              />
-            </div>
-
-            <button
-              onClick={handleAvatarClick}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--od-primary)',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Change photo
-            </button>
+            <UserAvatar user={user} size={112} />
 
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <LockedRow label="Name" value={sessionUser?.fullName ?? user.fullName} />
               <LockedRow label="Email" value={sessionUser?.email ?? ''} />
               <div
                 style={{

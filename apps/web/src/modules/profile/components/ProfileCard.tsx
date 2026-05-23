@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@swap-web/common/lib/utils';
 import CategoryThumbnail from '@swap-web/common/components/CategoryThumbnail';
 import ConfirmDeleteModal from '@swap-web/common/components/ConfirmDeleteModal';
-import api from '@swap-web/common/lib/axios';
 import { CATEGORY_PALETTE } from '@swap-web/common/lib/category-palette';
+import { useMarkItemSold, useDeleteItem } from '../hooks/useProfile';
 
 type CategoryKey = keyof typeof CATEGORY_PALETTE;
 
@@ -145,13 +144,14 @@ function CardMenu({ onClose, onEdit, onMarkSold, onDelete }: CardMenuProps) {
       }}
     >
       <MenuRow
-        label="Edit"
+        label="View listing"
         color="var(--od-text)"
         hoverBg="var(--od-surface-alt)"
         onClick={onEdit}
         icon={
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-            <path d="M16 4l4 4-11 11H5v-4L16 4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" stroke="currentColor" strokeWidth="2" />
+            <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
           </svg>
         }
       />
@@ -242,7 +242,6 @@ interface ProfileCardProps {
 
 export default function ProfileCard({ item, status, showMenu, date }: ProfileCardProps) {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [hover, setHover] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -250,20 +249,8 @@ export default function ProfileCard({ item, status, showMenu, date }: ProfileCar
   const categoryKey = capitalize(item.category) as CategoryKey;
   const imageUrl = item.itemImages[0]?.url;
 
-  const markSold = useMutation({
-    mutationFn: () => api.patch(`/items/${item.id}`, { status: 'sold' }).then((r) => r.data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['listings'] });
-      queryClient.invalidateQueries({ queryKey: ['sold'] });
-    },
-  });
-
-  const deleteItem = useMutation({
-    mutationFn: () => api.delete(`/items/${item.id}`).then((r) => r.data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['listings'] });
-    },
-  });
+  const { mutate: markSold } = useMarkItemSold();
+  const { mutate: deleteItem } = useDeleteItem();
 
   const displayDate = date ?? item.soldAt;
 
@@ -329,7 +316,7 @@ export default function ProfileCard({ item, status, showMenu, date }: ProfileCar
               }}
               onMarkSold={() => {
                 setMenuOpen(false);
-                markSold.mutate();
+                markSold(item.id);
               }}
               onDelete={() => {
                 setMenuOpen(false);
@@ -385,7 +372,7 @@ export default function ProfileCard({ item, status, showMenu, date }: ProfileCar
         onClose={() => setDeleteOpen(false)}
         onConfirm={() => {
           setDeleteOpen(false);
-          deleteItem.mutate();
+          deleteItem(item.id);
         }}
         itemTitle={item.title}
       />
