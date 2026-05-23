@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en"><head><script data-od-sandbox-shim="">(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TI-84 Plus calculator — KMUTT·EXG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #fa4617;
+      --primary-hover: #d93a13;
+      --primary-tint: rgba(250,70,23,0.09);
+      --primary-tint-strong: rgba(250,70,23,0.14);
+      --bg: #f7f7f7;
+      --surface: #ffffff;
+      --surface-alt: #f7f7f7;
+      --border: #e5e5e5;
+      --border-strong: #d4d4d4;
+      --text: #1a1a1a;
+      --text-secondary: #6b6b6b;
+      --text-tertiary: #9a9a9a;
+      --success: #10b981;
+      --success-dark: #047857;
+      --error: #dc2626;
+      --shadow-nav: 0 1px 2px rgba(16,24,40,0.04);
+      --shadow-card: 0 1px 2px rgba(16,24,40,0.04), 0 4px 12px rgba(16,24,40,0.05);
+      --shadow-card-hover: 0 2px 4px rgba(16,24,40,0.06), 0 12px 28px rgba(16,24,40,0.09);
+      --shadow-popover: 0 8px 28px rgba(16,24,40,0.14);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      min-height: 100%;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--bg);
+      color: var(--text);
+    }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+    .hide-scroll { scrollbar-width: none; }
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    @media (max-width: 1024px) { .detail-layout { grid-template-columns: 1fr !important; } .detail-right { position: static !important; } }
+    @media (max-width: 900px) { .search-bar { display: none !important; } }
+    @media (max-width: 680px) { .row-grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; } }
+  </style>
+<style data-od-tweaks-bridge-style="">
+[data-od-tweaks-hidden] .tw-panel {
+  transform: translateX(calc(100% + 32px)) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.tw-restore { display: none !important; }
+</style><script data-od-tweaks-bridge="">(function(){
+  // Synchronously hide BEFORE the artifact body parses so the panel never
+  // flashes on initial paint. The host removes the attribute via postMessage
+  // once it knows the desired state.
+  document.documentElement.setAttribute('data-od-tweaks-hidden', '');
+
+  var suppressEcho = false;
+  var observer = null;
+
+  function panelEl(){ return document.querySelector('.tw-panel'); }
+
+  function applyClassesToPanel(visible){
+    var panel = panelEl();
+    if (panel) panel.classList.toggle('tw-hidden', !visible);
+  }
+
+  function setPanelVisible(visible){
+    suppressEcho = true;
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !visible);
+    applyClassesToPanel(visible);
+    // Clear flag after the MutationObserver has had a chance to fire for this
+    // change so we don't echo our own host-driven toggles back to the host.
+    Promise.resolve().then(function(){ suppressEcho = false; });
+  }
+
+  function postState(){
+    var panel = panelEl();
+    if (!panel) return;
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-panel-state',
+        visible: !panel.classList.contains('tw-hidden'),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function postAvailability(){
+    try {
+      parent.postMessage({
+        type: 'od:tweaks-available',
+        available: !!panelEl(),
+      }, '*');
+    } catch (e) {}
+  }
+
+  function attachObserver(){
+    var panel = panelEl();
+    if (!panel || observer) return;
+    observer = new MutationObserver(function(){
+      if (suppressEcho) return;
+      postState();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  function onReady(){
+    // Capture the panel authored visibility BEFORE we apply the host hidden
+    // attribute. The bridge sets data-od-tweaks-hidden synchronously in head
+    // (before the body parses), so on entry to onReady the attribute is
+    // always present even though the artifact may have authored the panel
+    // as default-visible. Reading the panel class first is the only place
+    // we can still observe the author intent. Then drive the attribute,
+    // classes, and posted state from that captured value so a default
+    // visible tw-panel reports visible:true and the toolbar toggle starts
+    // ON. Issue surfaced in PR #1643 review.
+    var panel = panelEl();
+    var initialVisible = !!panel && !panel.classList.contains('tw-hidden');
+    document.documentElement.toggleAttribute('data-od-tweaks-hidden', !initialVisible);
+    applyClassesToPanel(initialVisible);
+    attachObserver();
+    postAvailability();
+    // Post the captured initial visibility so the toolbar toggle reflects
+    // the default state on mount. Without this the toggle reads OFF while
+    // a default-visible tw-panel artifact clearly shows its panel and the
+    // user would have to click toggle-on then toggle-off to actually hide.
+    postState();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
+  }
+
+  window.addEventListener('message', function(ev){
+    if (!ev.data || ev.data.type !== 'od:tweaks-panel-visible') return;
+    setPanelVisible(!!ev.data.visible);
+  });
+})();</script></head>
+<body>
+<div id="root" data-od-id="path-0"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+const CATEGORY_PALETTE = {
+  Books:       { bg: '#fef3ec', stripe: '#fde0cd', label: '#a3580f' },
+  Electronics: { bg: '#eef1f7', stripe: '#dbe1ec', label: '#3c4a64' },
+  Furniture:   { bg: '#f1efe9', stripe: '#e3dfd2', label: '#6b5d3a' },
+  Clothing:    { bg: '#f3eef3', stripe: '#e3d8e3', label: '#6a4a6a' },
+  Other:       { bg: '#eef3f0', stripe: '#dbe6df', label: '#3f6253' },
+};
+
+const ITEM = {
+  title: 'TI-84 Plus graphing calculator + USB charger',
+  price: 1800,
+  category: 'Electronics',
+  condition: 'Like New',
+  posted: '2 days ago',
+  location: 'North Campus, Dorm A lobby',
+  description: `Used for one semester of MATH 102 (Calculus) — works perfectly, no scratches on the screen or body. Still has all factory-preset apps.\n\nIncludes the original Casio USB charging cable and batteries. Battery holds a full charge.\n\nHas AP Calculus programs pre-loaded — happy to clear if you'd prefer a clean slate.\n\nPickup near North Campus Dorm A lobby, evenings work best. Can also meet near the Engineering Building during the day.`,
+  seller: { name: 'Earth Wattanakul', rating: 4.9, sales: 18, member: 'Member since Jan 2025' },
+  stats: { views: 84, chats: 7, saves: 12 },
+  images: [
+    { tag: 'TI-84 front' },
+    { tag: 'TI-84 back' },
+    { tag: 'USB charger' },
+    { tag: 'In box' },
+  ],
+};
+
+const MORE_FROM_SELLER = [
+  { id: 'e1', title: 'Engineering Economy, 16th ed.', price: 480, category: 'Books', tag: 'Eng Econ' },
+  { id: 'e2', title: 'USB-C hub, 6 ports — like new', price: 390, category: 'Electronics', tag: 'USB-C hub' },
+  { id: 'e3', title: 'Mechanical Eng Design, 11th ed.', price: 650, category: 'Books', tag: 'Mech Design' },
+  { id: 'e4', title: 'Soldering iron kit + tips', price: 290, category: 'Electronics', tag: 'Soldering' },
+];
+
+const SIMILAR = [
+  { id: 's1', title: 'Casio fx-CG50 graphing calculator', price: 2200, category: 'Electronics', tag: 'Casio CG50' },
+  { id: 's2', title: 'Lenovo 65W USB-C charger', price: 280, category: 'Electronics', tag: 'Charger' },
+  { id: 's3', title: 'Raspberry Pi 4 Model B, 4GB', price: 1650, category: 'Electronics', tag: 'Pi 4B' },
+  { id: 's4', title: 'USB-A hub, 4 port, white', price: 190, category: 'Electronics', tag: 'USB hub' },
+];
+
+const Avatar = ({ name, size = 40 }) => {
+  const hue = (name.charCodeAt(0) * 37) % 360;
+  const initials = name.split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+  return <div style={{ width: size, height: size, borderRadius: '50%', background: `oklch(0.82 0.04 ${hue})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * 0.36, fontWeight: 700, color: '#1a1a1a', flexShrink: 0, userSelect: 'none' }}>{initials}</div>;
+};
+
+const StripedThumb = ({ category, tag, hideLabel, style: s = {} }) => {
+  const p = CATEGORY_PALETTE[category] || CATEGORY_PALETTE.Other;
+  return (
+    <div style={{ background: `repeating-linear-gradient(135deg, ${p.bg} 0 12px, ${p.stripe} 12px 24px)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0, ...s }}>
+      {tag && !hideLabel && <span style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 9.5, color: p.label, background: 'rgba(255,255,255,0.82)', padding: '3px 7px', borderRadius: 3, letterSpacing: 0.2, lineHeight: 1.2, textAlign: 'center' }}>[{tag}]</span>}
+    </div>
+  );
+};
+
+const NavIconBtn = ({ children, ariaLabel }) => {
+  const [h, setH] = useState(false);
+  return <button aria-label={ariaLabel} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} style={{ width: 40, height: 40, borderRadius: '50%', background: h ? '#f1f1f1' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', transition: 'background 120ms ease', flexShrink: 0 }}>{children}</button>;
+};
+
+const SellBtn = () => {
+  const [h, setH] = useState(false);
+  return <button onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} style={{ height: 40, padding: '0 18px', borderRadius: 8, background: h ? 'var(--primary-hover)' : 'var(--primary)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, letterSpacing: 0.1, fontFamily: 'inherit', transition: 'all 120ms ease', boxShadow: h ? '0 4px 12px rgba(250,70,23,0.28)' : 'none', whiteSpace: 'nowrap' }}>Sell</button>;
+};
+
+const IconBtn = ({ children, ariaLabel, active, onClick }) => {
+  const [h, setH] = useState(false);
+  return <button aria-label={ariaLabel} onClick={onClick} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} style={{ width: 38, height: 38, borderRadius: '50%', background: h ? '#f1f1f1' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? 'var(--primary)' : 'var(--text)', transition: 'background 120ms ease', flexShrink: 0 }}>{children}</button>;
+};
+
+const TopNav = () => {
+  const [searchFocused, setSearchFocused] = useState(false);
+  return (
+    <nav style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'saturate(180%) blur(10px)', WebkitBackdropFilter: 'saturate(180%) blur(10px)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 30 }}>
+      <div style={{ maxWidth: 1440, margin: '0 auto', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, cursor: 'pointer', flexShrink: 0 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(250,70,23,0.25)' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M4 8 L15 8 M12.5 5.5 L15 8 L12.5 10.5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M20 16 L9 16 M11.5 13.5 L9 16 L11.5 18.5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: -0.4, color: 'var(--text)', whiteSpace: 'nowrap' }}>sw<span style={{ color: 'var(--primary)' }}>a</span>p</span>
+        </div>
+        <div className="search-bar" style={{ flex: 1, maxWidth: 520, display: 'flex', alignItems: 'center', background: searchFocused ? '#fff' : '#f1f1f1', border: `1.5px solid ${searchFocused ? 'var(--primary)' : 'transparent'}`, borderRadius: 999, padding: '0 14px', height: 42, transition: 'all 120ms ease', boxShadow: searchFocused ? '0 0 0 4px rgba(250,70,23,0.09)' : 'none' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--text-secondary)', flexShrink: 0 }}><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          <input type="text" placeholder="Search items..." onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)} style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 14.5, color: 'var(--text)', padding: '0 10px', height: '100%', fontFamily: 'inherit' }} />
+        </div>
+        <div style={{ flex: 1 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <div style={{ position: 'relative' }}>
+            <NavIconBtn ariaLabel="Messages">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 0 1-11.6 7.15L4 20l1-4.4A8 8 0 1 1 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>
+            </NavIconBtn>
+            <span style={{ position: 'absolute', top: 4, right: 4, minWidth: 18, height: 18, padding: '0 5px', background: 'var(--primary)', color: '#fff', borderRadius: 999, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff', lineHeight: 1, pointerEvents: 'none' }}>3</span>
+          </div>
+          <button aria-label="Account" style={{ width: 36, height: 36, borderRadius: '50%', padding: 0, background: 'transparent', border: 'none', cursor: 'pointer' }}>
+            <Avatar name="Pim Suwannarat" size={36} />
+          </button>
+          <SellBtn />
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+const GalleryArrow = ({ side, onClick }) => {
+  const [h, setH] = useState(false);
+  return (
+    <button onClick={onClick} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', [side]: 14, width: 44, height: 44, borderRadius: '50%', background: h ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.88)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1a1a1a', boxShadow: '0 2px 8px rgba(0,0,0,0.14)', backdropFilter: 'blur(4px)', zIndex: 4 }} aria-label={side === 'left' ? 'Previous photo' : 'Next photo'}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d={side === 'left' ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    </button>
+  );
+};
+
+const Gallery = ({ images, category }) => {
+  const [idx, setIdx] = useState(0);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', borderRadius: 12, overflow: 'hidden', background: '#f1f1f1', border: '1px solid var(--border)' }}>
+        <StripedThumb category={category} tag={images[idx].tag} style={{ width: '100%', height: '100%' }} />
+        <GalleryArrow side="left" onClick={() => setIdx(i => (i - 1 + images.length) % images.length)} />
+        <GalleryArrow side="right" onClick={() => setIdx(i => (i + 1) % images.length)} />
+        <div style={{ position: 'absolute', bottom: 14, right: 14, background: 'rgba(26,26,26,0.78)', color: '#fff', fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 999, letterSpacing: 0.3 }}>{idx + 1} / {images.length}</div>
+      </div>
+      <div style={{ display: 'flex', gap: 10 }}>
+        {images.map((img, i) => (
+          <button key={i} onClick={() => setIdx(i)} style={{ flex: 1, aspectRatio: '1 / 1', maxWidth: 110, borderRadius: 8, overflow: 'hidden', cursor: 'pointer', border: i === idx ? '2px solid var(--primary)' : '1.5px solid var(--border)', padding: 0, background: '#fff', boxShadow: i === idx ? '0 0 0 3px var(--primary-tint)' : 'none', transition: 'all 120ms ease' }}>
+            <StripedThumb category={category} tag={img.tag} hideLabel style={{ width: '100%', height: '100%' }} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const Block = ({ title, children }) => (
+  <section style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    {title && <h2 style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: 0.6, textTransform: 'uppercase' }}>{title}</h2>}
+    {children}
+  </section>
+);
+
+const Pill = ({ children, accent }) => (
+  <span style={{ fontSize: 11.5, fontWeight: 600, color: accent ? 'var(--primary)' : 'var(--text-secondary)', background: accent ? 'var(--primary-tint)' : '#f1f1f1', padding: '4px 10px', borderRadius: 999, letterSpacing: 0.1 }}>{children}</span>
+);
+
+const StatCell = ({ icon, label, value, accent }) => (
+  <div style={{ background: '#fff', padding: '12px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+    <div style={{ color: accent ? 'var(--primary)' : 'var(--text-secondary)' }}>
+      {icon === 'eye' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/></svg>}
+      {icon === 'chat' && <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 0 1-11.6 7.15L4 20l1-4.4A8 8 0 1 1 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>}
+      {icon === 'heart' && <svg width="18" height="18" viewBox="0 0 24 24" fill={accent ? 'currentColor' : 'none'}><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6.5 5.5 5.5 0 0 1 21.5 12c-2.5 4.5-9.5 9-9.5 9Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>}
+    </div>
+    <span style={{ fontSize: 17, fontWeight: 700, lineHeight: 1, letterSpacing: -0.2 }}>{value}</span>
+    <span style={{ fontSize: 11.5, color: 'var(--text-secondary)' }}>{label}</span>
+  </div>
+);
+
+const DetailRight = ({ saved, setSaved }) => {
+  const [chatLoading, setChatLoading] = useState(false);
+  const [btnHover, setBtnHover] = useState(false);
+  const handleChat = () => { setChatLoading(true); setTimeout(() => { window.location.href = 'chat.html'; }, 900); };
+  return (
+    <aside className="detail-right" style={{ position: 'sticky', top: 88, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <Pill accent>Electronics</Pill>
+          <Pill>Like New</Pill>
+        </div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <IconBtn ariaLabel="Share">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 4 L20 4 L20 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M20 4 L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </IconBtn>
+          <IconBtn ariaLabel={saved ? 'Unsave' : 'Save'} active={saved} onClick={() => setSaved(s => !s)}>
+            {saved ? <svg width="18" height="18" viewBox="0 0 24 24" fill="#fa4617"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6.5 5.5 5.5 0 0 1 21.5 12c-2.5 4.5-9.5 9-9.5 9Z" stroke="#fa4617" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+              : <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6.5 5.5 5.5 0 0 1 21.5 12c-2.5 4.5-9.5 9-9.5 9Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>}
+          </IconBtn>
+        </div>
+      </div>
+      <div>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, letterSpacing: -0.4, lineHeight: 1.25 }}>{ITEM.title}</h1>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 12 }}>
+          <span style={{ fontSize: 36, fontWeight: 800, letterSpacing: -0.8, color: 'var(--primary)' }}>฿{ITEM.price.toLocaleString()}</span>
+        </div>
+        <div style={{ marginTop: 6, fontSize: 13, color: 'var(--text-secondary)' }}>Posted {ITEM.posted}</div>
+      </div>
+      <Block>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={handleChat} onMouseEnter={() => setBtnHover(true)} onMouseLeave={() => setBtnHover(false)} disabled={chatLoading} style={{ flex: 1, height: 50, borderRadius: 6, background: btnHover && !chatLoading ? 'var(--primary-hover)' : 'var(--primary)', color: '#fff', border: 'none', cursor: chatLoading ? 'progress' : 'pointer', fontSize: 15, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit', transition: 'all 120ms ease', boxShadow: btnHover && !chatLoading ? '0 4px 12px rgba(250,70,23,0.28)' : 'none' }}>
+            {chatLoading ? <span style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', display: 'inline-block', animation: 'spin 700ms linear infinite' }} />
+              : <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 0 1-11.6 7.15L4 20l1-4.4A8 8 0 1 1 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>}
+            {chatLoading ? 'Opening chat…' : 'Chat with Seller'}
+          </button>
+          <button onClick={() => setSaved(s => !s)} style={{ width: 50, height: 50, borderRadius: 6, background: '#fff', color: saved ? 'var(--primary)' : 'var(--text)', border: `1.5px solid ${saved ? 'var(--primary)' : 'var(--border)'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 120ms ease' }} aria-label={saved ? 'Unsave' : 'Save'}>
+            {saved ? <svg width="22" height="22" viewBox="0 0 24 24" fill="#fa4617"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6.5 5.5 5.5 0 0 1 21.5 12c-2.5 4.5-9.5 9-9.5 9Z" stroke="#fa4617" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+              : <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6.5 5.5 5.5 0 0 1 21.5 12c-2.5 4.5-9.5 9-9.5 9Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>}
+          </button>
+        </div>
+        <button style={{ alignSelf: 'center', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: 13, fontWeight: 500, cursor: 'pointer', padding: '4px 8px', marginTop: 2, width: '100%' }}
+          onMouseOver={(e) => e.currentTarget.style.color = 'var(--error)'} onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}>
+          Report this listing
+        </button>
+      </Block>
+      <Block title="Pickup">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--primary-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12Z" stroke="#fa4617" strokeWidth="2" strokeLinejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="#fa4617" strokeWidth="2"/></svg>
+          </div>
+          <span style={{ fontSize: 14 }}>{ITEM.location}</span>
+        </div>
+      </Block>
+      <Block title="Seller">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Avatar name={ITEM.seller.name} size={48} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{ITEM.seller.name}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12.5, color: 'var(--text-secondary)', marginTop: 2 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#fa4617"><path d="M12 17.3l-6.18 3.7 1.64-7-5.46-4.73 7.19-.62L12 2l2.81 6.65 7.19.62-5.46 4.73 1.64 7L12 17.3z"/></svg>
+              <span style={{ color: 'var(--text)', fontWeight: 600 }}>{ITEM.seller.rating}</span>
+              <span>· {ITEM.seller.sales} sales</span>
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 1 }}>{ITEM.seller.member}</div>
+          </div>
+          <button style={{ height: 34, padding: '0 12px', background: '#fff', color: 'var(--primary)', border: '1.5px solid var(--primary)', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+            onMouseOver={(e) => e.currentTarget.style.background = 'var(--primary-tint)'} onMouseOut={(e) => e.currentTarget.style.background = '#fff'}>View profile</button>
+        </div>
+      </Block>
+      <Block title="Listing stats">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'var(--border)', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+          <StatCell icon="eye" label="Views" value={ITEM.stats.views} />
+          <StatCell icon="chat" label="Chats" value={ITEM.stats.chats} />
+          <StatCell icon="heart" label="Saves" value={ITEM.stats.saves} accent />
+        </div>
+      </Block>
+    </aside>
+  );
+};
+
+const RowCard = ({ item }) => {
+  const [h, setH] = useState(false);
+  return (
+    <article onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} style={{ background: '#fff', borderRadius: 8, overflow: 'hidden', boxShadow: h ? 'var(--shadow-card-hover)' : 'var(--shadow-card)', cursor: 'pointer', transition: 'box-shadow 160ms ease, transform 160ms ease', transform: h ? 'translateY(-2px)' : 'none' }}>
+      <StripedThumb category={item.category} tag={item.tag} style={{ width: '100%', aspectRatio: '1 / 1' }} />
+      <div style={{ padding: '10px 10px 12px' }}>
+        <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 35 }}>{item.title}</div>
+        <div style={{ marginTop: 6, fontSize: 16, fontWeight: 700, letterSpacing: -0.2 }}>฿{item.price.toLocaleString()}</div>
+      </div>
+    </article>
+  );
+};
+
+const App = () => {
+  const [saved, setSaved] = useState(false);
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <TopNav />
+      <main style={{ maxWidth: 1200, margin: '0 auto', width: '100%', padding: '20px 24px 72px' }}>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-secondary)' }}>
+          {['Browse', 'Electronics', 'TI-84 Plus calculator'].map((seg, i, arr) => (
+            <React.Fragment key={i}>
+              {i > 0 && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--text-tertiary)' }}><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              {i === arr.length - 1 ? <span style={{ color: 'var(--text)', fontWeight: 500 }}>{seg}</span>
+                : <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }} onMouseOver={(e) => e.currentTarget.style.color = 'var(--primary)'} onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}>{seg}</a>}
+            </React.Fragment>
+          ))}
+        </nav>
+        <div className="detail-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.45fr) minmax(0, 1fr)', gap: 28, marginTop: 18, alignItems: 'flex-start' }}>
+          <Gallery images={ITEM.images} category={ITEM.category} />
+          <DetailRight saved={saved} setSaved={setSaved} />
+        </div>
+        <section style={{ marginTop: 36, background: '#fff', border: '1px solid var(--border)', borderRadius: 10, padding: '22px 24px', maxWidth: 920 }}>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, letterSpacing: -0.2 }}>Description</h2>
+          <p style={{ margin: '12px 0 0', fontSize: 15, color: 'var(--text)', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{ITEM.description}</p>
+        </section>
+        <section style={{ marginTop: 40 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: -0.2 }}>More from Earth</h2>
+            <a href="#" style={{ fontSize: 13.5, color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>View all →</a>
+          </div>
+          <div className="row-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
+            {MORE_FROM_SELLER.map(item => <RowCard key={item.id} item={item} />)}
+          </div>
+        </section>
+        <section style={{ marginTop: 40 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: -0.2 }}>Similar items</h2>
+            <a href="#" style={{ fontSize: 13.5, color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>See all Electronics →</a>
+          </div>
+          <div className="row-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
+            {SIMILAR.map(item => <RowCard key={item.id} item={item} />)}
+          </div>
+        </section>
+      </main>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+
+
+Both files were written to disk successfully:
+
+- **`item-detail.html`** — Item detail page (TI-84 Plus, buyer view) with photo gallery, sticky right panel (chat CTA, seller info, stats), description, "More from seller" and "Similar items" rows. Responsive at ≤1024px.
+
+- **`upload.html`** — Sell an item form with photo uploader (drag-and-drop, 5-photo grid, primary badge), live preview card that updates as you type, all form fields (title, description, ฿ price, offers toggle, category/condition dropdowns, location), and a success modal after posting that links to `item-detail.html`.
+
+Both use the same `swap` nav from `chat.html` and `profile.html`.<script data-od-snapshot-bridge="">(function(){
+  function copyComputedStyle(source, target){
+    if (!source || !target || source.nodeType !== 1 || target.nodeType !== 1) return;
+    var computed = window.getComputedStyle(source);
+    var style = target.getAttribute('style') || '';
+    for (var i = 0; i < computed.length; i++){
+      var prop = computed[i];
+      style += prop + ':' + computed.getPropertyValue(prop) + ';';
+    }
+    target.setAttribute('style', style);
+  }
+  function syncElementState(source, target){
+    var tag = source.tagName ? source.tagName.toLowerCase() : '';
+    if (tag === 'img' && source.currentSrc) target.setAttribute('src', source.currentSrc);
+    if (tag === 'input' || tag === 'textarea') target.setAttribute('value', source.value || '');
+    if (tag === 'canvas') {
+      try {
+        var img = document.createElement('img');
+        img.setAttribute('src', source.toDataURL('image/png'));
+        img.setAttribute('style', target.getAttribute('style') || '');
+        target.parentNode && target.parentNode.replaceChild(img, target);
+      } catch (_) {}
+    }
+  }
+  function inlineSnapshotStyles(originalRoot, cloneRoot){
+    copyComputedStyle(originalRoot, cloneRoot);
+    syncElementState(originalRoot, cloneRoot);
+    var originals = originalRoot.querySelectorAll('*');
+    var clones = cloneRoot.querySelectorAll('*');
+    var count = Math.min(originals.length, clones.length);
+    for (var i = 0; i < count; i++){
+      copyComputedStyle(originals[i], clones[i]);
+      syncElementState(originals[i], clones[i]);
+    }
+    var scripts = cloneRoot.querySelectorAll('script');
+    for (var s = scripts.length - 1; s >= 0; s--) scripts[s].remove();
+  }
+  function waitForImages(){
+    var imgs = Array.prototype.slice.call(document.images || []);
+    return Promise.all(imgs.map(function(img){
+      if (img.complete) return Promise.resolve();
+      return new Promise(function(resolve){
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }));
+  }
+  function renderSnapshot(id){
+    var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+    var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    var dpr = window.devicePixelRatio || 1;
+    var docW = Math.max(w, document.documentElement.scrollWidth || 0, document.body ? document.body.scrollWidth : 0);
+    var docH = Math.max(h, document.documentElement.scrollHeight || 0, document.body ? document.body.scrollHeight : 0);
+    var clone = document.documentElement.cloneNode(true);
+    clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    inlineSnapshotStyles(document.documentElement, clone);
+    var serializer = new XMLSerializer();
+    var html = serializer.serializeToString(clone);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+      '<foreignObject x="' + (-window.scrollX || 0) + '" y="' + (-window.scrollY || 0) + '" width="' + docW + '" height="' + docH + '">' +
+      html +
+      '</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.floor(w * dpr));
+        canvas.height = Math.max(1, Math.floor(h * dpr));
+        var ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no 2d context');
+        ctx.scale(dpr, dpr);
+        ctx.drawImage(img, 0, 0, w, h);
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height }, '*');
+      } catch (err) {
+        window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: String(err && err.message || err) }, '*');
+      }
+    };
+    img.onerror = function(){
+      window.parent.postMessage({ type: 'od:snapshot:result', id: id, error: 'snapshot image failed' }, '*');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:snapshot' || !data.id) return;
+    waitForImages().then(function(){ renderSnapshot(String(data.id)); });
+  });
+})();</script><script data-od-srcdoc-transport-activation="">(function(){
+  window.addEventListener('message', function(ev){
+    var data = ev && ev.data;
+    if (!data || data.type !== 'od:srcdoc-transport-activate' || typeof data.html !== 'string') return;
+    document.open();
+    document.write(data.html);
+    document.close();
+  });
+})();</script></body></html>
