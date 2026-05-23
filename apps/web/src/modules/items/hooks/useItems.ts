@@ -1,6 +1,6 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '@swap-web/common/lib/axios';
-import type { ApiResponse, ItemWithDetails } from '@swap/types';
+import type { ApiResponse, ItemWithDetails, CreateItemPayload } from '@swap/types';
 
 export function useItems(query?: any) {
   return useQuery({
@@ -17,8 +17,12 @@ export function useItem(id: string) {
 }
 
 export function useCreateItem() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => axios.post('/items', data).then((r) => r.data),
+    mutationFn: (data: CreateItemPayload) => axios.post('/items', data).then((r) => r.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+    },
   });
 }
 
