@@ -33,7 +33,7 @@ export default function ItemDetailPage() {
   const isSeller = user?.id === item.sellerId;
 
   return (
-    <div className="max-w-[500px] md:max-w-[1200px] mx-auto px-6 py-5 pb-[72px]">
+    <div className="max-w-[500px] md:max-w-[1120px] mx-auto px-6 py-5 pb-[72px]">
       <ItemBreadcrumb category={item.category} title={item.title} />
 
       <div className="detail-layout grid gap-7 mt-[18px] items-start sm:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] grid-cols-1 sm:grid-cols-2">
