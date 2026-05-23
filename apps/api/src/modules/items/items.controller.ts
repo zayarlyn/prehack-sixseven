@@ -24,7 +24,9 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
   const minPrice = req.query.minPrice && Number.isFinite(rawMinPrice) ? rawMinPrice : undefined;
   const maxPrice = req.query.maxPrice && Number.isFinite(rawMaxPrice) ? rawMaxPrice : undefined;
 
-  const result = await itemsService.listItems({ limit, page, q, category, sort, minPrice, maxPrice });
+  const sellerId = (req.query.sellerId as string) || undefined;
+
+  const result = await itemsService.listItems({ limit, page, q, category, sort, minPrice, maxPrice, sellerId });
   paginated(res, result.items, result.pagination);
 });
 
