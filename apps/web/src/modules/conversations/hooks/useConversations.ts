@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { ref, get, query, orderByChild } from 'firebase/database';
+import { ref, get } from 'firebase/database';
 import api from '@swap-web/common/lib/axios';
 import { db } from '@swap-web/common/lib/firebase';
 import {
@@ -86,7 +86,7 @@ async function enrichConversation(conv: RawConversation, userId: string): Promis
 
     const [readBySnap, msgsSnap] = await Promise.all([
       get(ref(db, `conversations/${firebaseId}/readBy/${userId}`)),
-      get(query(ref(db, `conversations/${firebaseId}/messages`), orderByChild('createdAt'))),
+      get(ref(db, `conversations/${firebaseId}/messages`)),
     ]);
 
     const readAt: number = (readBySnap.val() as number | null) ?? 0;

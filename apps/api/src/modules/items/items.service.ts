@@ -32,7 +32,11 @@ export async function getItem(itemId: string) {
     data: { viewCount: { increment: 1 } },
   });
 
-  return item;
+  const sellerSoldCount = await prisma.item.count({
+    where: { sellerId: item.sellerId, status: 'sold' },
+  });
+
+  return { ...item, sellerSoldCount };
 }
 
 export interface ListItemsParams {
@@ -43,16 +47,18 @@ export interface ListItemsParams {
   minPrice?: number;
   maxPrice?: number;
   sort?: 'newest' | 'low' | 'high';
+  sellerId?: string;
 }
 
 export async function listItems(params: ListItemsParams = {}) {
-  const { limit = 20, page = 1, q, category, minPrice, maxPrice, sort = 'newest' } = params;
+  const { limit = 20, page = 1, q, category, minPrice, maxPrice, sort = 'newest', sellerId } = params;
   const skip = (page - 1) * limit;
 
   const where = {
     status: 'active' as const,
     ...(category && { category }),
-    ...(q && { title: { contains: q, mode: 'insensitive' as const } }),
+    ...(sellerId && { sellerId }),
+    ...(q && { title: { contains: q } }),
     ...((minPrice != null || maxPrice != null) && {
       price: {
         ...(minPrice != null && { gte: minPrice }),
