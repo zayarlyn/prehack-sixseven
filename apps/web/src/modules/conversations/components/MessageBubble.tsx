@@ -21,7 +21,7 @@ export default function MessageBubble({ message, isSent, isGrouped }: MessageBub
           'max-w-[68%] px-4 py-2.5 text-sm rounded-[20px]',
           isSent
             ? cn('bg-primary text-primary-foreground rounded-br-[6px]', isGrouped && 'rounded-tr-[6px]')
-            : cn('bg-[#f0f0f0] text-foreground rounded-bl-[6px]', isGrouped && 'rounded-tl-[6px]'),
+            : cn('bg-muted text-foreground rounded-bl-[6px]', isGrouped && 'rounded-tl-[6px]'),
         )}
       >
         {message.content}

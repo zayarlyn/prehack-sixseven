@@ -69,7 +69,7 @@ export default function ConversationsPage() {
   }, [messages]);
 
   useEffect(() => {
-    if (!activeConv) return;
+    if (!activeConv?.id) return;
     markAsReadRef.current();
   }, [activeConv?.id, messages.length]);
 
@@ -86,7 +86,7 @@ export default function ConversationsPage() {
   const dayGroups = groupByDay(messages);
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col pt-16">
+    <div className="h-screen overflow-hidden flex flex-col pt-8">
       <div className="flex-1 min-h-0 overflow-hidden p-4 md:p-6">
         <div
           className={cn(
@@ -111,6 +111,7 @@ export default function ConversationsPage() {
                   <UserAvatar user={activeConv.otherUser} size={38} />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm truncate">{activeConv.otherUser.fullName}</p>
+                    {/* TODO: replace with real presence once Firebase presence is implemented */}
                     <div className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                       <span className="text-xs text-muted-foreground">Active now</span>
@@ -124,7 +125,7 @@ export default function ConversationsPage() {
                 {/* Messages area */}
                 <div
                   ref={scrollRef}
-                  className="flex-1 overflow-y-auto min-h-0 bg-[#fafafa] px-7 py-3 [&::-webkit-scrollbar]:hidden"
+                  className="flex-1 overflow-y-auto min-h-0 bg-muted/30 px-7 py-3 [&::-webkit-scrollbar]:hidden"
                 >
                   {dayGroups.map(({ label, messages: dayMessages }) => (
                     <div key={label}>
@@ -133,7 +134,7 @@ export default function ConversationsPage() {
                         const isGrouped = i > 0 && dayMessages[i - 1].senderId === msg.senderId;
                         return (
                           <MessageBubble
-                            key={`${msg.senderId}-${msg.createdAt}`}
+                            key={msg.key}
                             message={msg}
                             isSent={msg.senderId === user?.id}
                             isGrouped={isGrouped}

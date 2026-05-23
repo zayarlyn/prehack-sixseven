@@ -1,6 +1,6 @@
 import prisma from '../../common/lib/prisma';
 import { getDatabase } from '../../common/lib/firebase';
-import { notFound, badRequest } from '../../common/utils/errors';
+import { notFound, forbidden } from '../../common/utils/errors';
 import { CreateConversationPayload } from './conversations.dto';
 import crypto from 'crypto';
 
@@ -50,8 +50,30 @@ export async function getConversations(userId: string) {
           },
         },
       },
-      buyer: { select: { id: true, fullName: true, avatarUrl: true } },
-      seller: { select: { id: true, fullName: true, avatarUrl: true } },
+      buyer: {
+        select: {
+          id: true,
+          fullName: true,
+          avatarUrl: true,
+          createdAt: true,
+          faculty: true,
+          major: true,
+          year: true,
+          programLevel: true,
+        },
+      },
+      seller: {
+        select: {
+          id: true,
+          fullName: true,
+          avatarUrl: true,
+          createdAt: true,
+          faculty: true,
+          major: true,
+          year: true,
+          programLevel: true,
+        },
+      },
     },
     orderBy: { lastMessageAt: 'desc' },
   });
@@ -61,7 +83,7 @@ export async function updateLastMessage(conversationId: string, userId: string):
   const conversation = await prisma.conversation.findUnique({ where: { id: conversationId } });
   if (!conversation) throw notFound('Conversation');
   const isParticipant = conversation.buyerId === userId || conversation.sellerId === userId;
-  if (!isParticipant) throw badRequest('Not authorized');
+  if (!isParticipant) throw forbidden();
   await prisma.conversation.update({
     where: { id: conversationId },
     data: { lastMessageAt: new Date() },
@@ -81,7 +103,7 @@ export async function getConversationById(conversationId: string, userId: string
   if (!conversation) throw notFound('Conversation');
 
   const isParticipant = conversation.buyerId === userId || conversation.sellerId === userId;
-  if (!isParticipant) throw badRequest('Not authorized to view this conversation');
+  if (!isParticipant) throw forbidden();
 
   return conversation;
 }

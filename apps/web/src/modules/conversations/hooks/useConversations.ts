@@ -3,13 +3,25 @@ import { useEffect, useState } from 'react';
 import { ref, get, query, orderByChild } from 'firebase/database';
 import api from '@swap-web/common/lib/axios';
 import { db } from '@swap-web/common/lib/firebase';
-import { type ConversationWithDetails, type FirebaseMessage, type ItemCategory } from '@swap/types';
+import {
+  type ConversationWithDetails,
+  type FirebaseMessage,
+  type ItemCategory,
+  type Faculty,
+  type Major,
+  type ProgramLevel,
+} from '@swap/types';
 import { useAuth } from '@swap-web/modules/auth/hooks/useAuth';
 
 type RawUser = {
   id: string;
   fullName: string;
   avatarUrl: string | null;
+  createdAt: string;
+  faculty: Faculty | null;
+  major: Major | null;
+  year: number | null;
+  programLevel: ProgramLevel | null;
 };
 
 type RawConversation = {
@@ -57,12 +69,12 @@ function buildConversationWithDetails(
       id: rawOther.id,
       fullName: rawOther.fullName,
       avatarUrl: rawOther.avatarUrl,
-      faculty: null,
-      major: null,
-      year: null,
-      programLevel: null,
-      createdAt: new Date(),
-    } as ConversationWithDetails['otherUser'],
+      faculty: rawOther.faculty,
+      major: rawOther.major,
+      year: rawOther.year,
+      programLevel: rawOther.programLevel,
+      createdAt: new Date(rawOther.createdAt),
+    },
     unreadCount,
     lastMessage,
   };
@@ -78,8 +90,8 @@ async function enrichConversation(conv: RawConversation, userId: string): Promis
     ]);
 
     const readAt: number = (readBySnap.val() as number | null) ?? 0;
-    const msgsData = msgsSnap.val() as Record<string, FirebaseMessage> | null;
-    const msgs: FirebaseMessage[] = msgsData ? Object.values(msgsData).sort((a, b) => a.createdAt - b.createdAt) : [];
+    const msgsData = msgsSnap.val() as Record<string, Omit<FirebaseMessage, 'key'>> | null;
+    const msgs = msgsData ? Object.values(msgsData).sort((a, b) => a.createdAt - b.createdAt) : [];
 
     const unreadCount = msgs.filter((m) => m.createdAt > readAt && m.senderId !== userId).length;
     const lastMsg = msgs[msgs.length - 1] ?? null;
@@ -107,7 +119,7 @@ export function useConversations() {
     Promise.all(rawQuery.data.map((c) => enrichConversation(c, user.id)))
       .then(setConversations)
       .catch((err) => console.error('[useConversations] enrichment failed:', err));
-  }, [rawQuery.data, user?.id]);
+  }, [rawQuery.data, user]);
 
   return {
     conversations,
