@@ -2,11 +2,12 @@ import { CATEGORY_PALETTE, type Category } from '@swap-web/common/lib/category-p
 
 interface CategoryThumbnailProps {
   category: Category;
-  tag: string;
+  tag?: string;
   sold?: boolean;
+  hideLabel?: boolean;
 }
 
-export default function CategoryThumbnail({ category, tag, sold = false }: CategoryThumbnailProps) {
+export default function CategoryThumbnail({ category, tag, sold = false, hideLabel = false }: CategoryThumbnailProps) {
   const p = CATEGORY_PALETTE[category] ?? CATEGORY_PALETTE.Other;
 
   return (
@@ -28,23 +29,25 @@ export default function CategoryThumbnail({ category, tag, sold = false }: Categ
           justifyContent: 'center',
         }}
       >
-        <span
-          style={{
-            fontFamily: "'JetBrains Mono', ui-monospace, Menlo, monospace",
-            fontSize: 11,
-            fontWeight: 500,
-            color: p.label,
-            background: 'rgba(255,255,255,0.78)',
-            padding: '4px 8px',
-            borderRadius: 4,
-            letterSpacing: 0.2,
-            maxWidth: '85%',
-            textAlign: 'center',
-            textTransform: 'uppercase',
-          }}
-        >
-          [{tag}]
-        </span>
+        {!hideLabel && tag && (
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', ui-monospace, Menlo, monospace",
+              fontSize: 11,
+              fontWeight: 500,
+              color: p.label,
+              background: 'rgba(255,255,255,0.78)',
+              padding: '4px 8px',
+              borderRadius: 4,
+              letterSpacing: 0.2,
+              maxWidth: '85%',
+              textAlign: 'center',
+              textTransform: 'uppercase',
+            }}
+          >
+            [{tag}]
+          </span>
+        )}
       </div>
 
       {sold && (

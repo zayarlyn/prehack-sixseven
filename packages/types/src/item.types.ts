@@ -1,3 +1,5 @@
+import type { PublicUser } from './user.types';
+
 export type ItemStatus = 'active' | 'sold' | 'deleted';
 export type ItemCategory = 'books' | 'electronics' | 'furniture' | 'clothing' | 'other';
 export type ItemCondition = 'new' | 'like_new' | 'good' | 'fair';
@@ -18,6 +20,12 @@ export interface Item {
   updatedAt: Date;
   soldAt: Date | null;
   deletedAt: Date | null;
+}
+
+export interface ItemWithDetails extends Item {
+  itemImages: { id: string; url: string }[];
+  seller: PublicUser;
+  sellerSoldCount: number;
 }
 
 export interface CreateItemPayload {
