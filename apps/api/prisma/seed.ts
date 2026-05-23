@@ -5,13 +5,18 @@ import * as admin from 'firebase-admin';
 
 const prisma = new PrismaClient();
 
+const { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY, FIREBASE_DATABASE_URL } = process.env;
+if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY || !FIREBASE_DATABASE_URL) {
+  throw new Error('Missing required Firebase environment variables for seeding');
+}
+
 const firebaseApp = admin.initializeApp({
   credential: admin.credential.cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  } as admin.ServiceAccount),
-  databaseURL: process.env.FIREBASE_DATABASE_URL,
+    projectId: FIREBASE_PROJECT_ID,
+    clientEmail: FIREBASE_CLIENT_EMAIL,
+    privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  }),
+  databaseURL: FIREBASE_DATABASE_URL,
 });
 
 const db = admin.database();
@@ -34,6 +39,15 @@ async function main() {
   await prisma.conversation.deleteMany();
   await prisma.itemImage.deleteMany();
   await prisma.item.deleteMany();
+
+  // ── Cleanup (makes seed idempotent) ───────────────────────────────────────────
+  await prisma.transaction.deleteMany({});
+  await prisma.conversation.deleteMany({});
+  await prisma.itemImage.deleteMany({});
+  await prisma.item.deleteMany({});
+  await prisma.user.deleteMany({
+    where: { microsoftId: { in: ['dev-bypass-microsoft-id', 'user1-ms', 'user2-ms', 'user3-ms'] } },
+  });
 
   // ─── Users ───────────────────────────────────────────────────────
   const devUser = await prisma.user.upsert({

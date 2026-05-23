@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import asyncHandler from '../../common/utils/asyncHandler';
 import * as conversationsService from './conversations.service';
 import { success } from '../../common/utils/response';
+import { unauthorized } from '../../common/utils/errors';
 
 export const createOrFetch = asyncHandler(async (req: Request, res: Response) => {
   const conversation = await conversationsService.createOrFetchConversation(req.user!.id, req.body);
@@ -19,6 +20,7 @@ export const getById = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const updateLastMessage = asyncHandler(async (req: Request, res: Response) => {
-  await conversationsService.updateLastMessage(req.params.conversationId, req.user!.id);
+  if (!req.user) throw unauthorized();
+  await conversationsService.updateLastMessage(req.params.conversationId, req.user.id);
   success(res, null, 204);
 });

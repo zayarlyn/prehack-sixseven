@@ -17,12 +17,14 @@ export function useFirebaseChat(firebaseId: string, conversationId: string, curr
 
     const messagesRef = query(ref(db, `conversations/${firebaseId}/messages`), orderByChild('createdAt'));
     const unsubscribe = onValue(messagesRef, (snapshot) => {
-      const data = snapshot.val() as Record<string, FirebaseMessage> | null;
+      const data = snapshot.val() as Record<string, Omit<FirebaseMessage, 'key'>> | null;
       if (!data) {
         setMessages([]);
         return;
       }
-      const msgs = Object.values(data).sort((a, b) => a.createdAt - b.createdAt);
+      const msgs = Object.entries(data)
+        .map(([key, msg]) => ({ key, ...msg }))
+        .sort((a, b) => a.createdAt - b.createdAt);
       setMessages(msgs);
     });
 
